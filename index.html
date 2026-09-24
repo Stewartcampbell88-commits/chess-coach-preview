@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#5B8F6B" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Clean Coach" />
+  <title>Clean Coach</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <style>
+    :root {
+      --bg: #F7F7F5;
+      --surface: #FFFFFF;
+      --sage: #5B8F6B;
+      --sage-soft: #E8F1EB;
+      --coral: #D97B6C;
+      --coral-soft: #F8E8E5;
+      --text: #1C1C1A;
+      --muted: #6B6B66;
+      --border: #E6E6E1;
+      --light-sq: #F0EDE6;
+      --dark-sq: #B7C4B0;
+      --hi: #F5E6A8;
+      --hi-ok: #A8D5B5;
+      --hi-bad: #F0B8B0;
+      --radius: 18px;
+      --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+    button {
+      font: inherit;
+      color: inherit;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:not(:disabled):active { transform: scale(0.98); }
+    button:disabled { opacity: 0.45; cursor: default; }
+    #app {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      padding: max(0.75rem, env(safe-area-inset-top)) 1rem max(2rem, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+    }
+    .chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .chrome-meta { min-width: 0; }
+    .chrome-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .mastery {
+      margin-top: 0.4rem;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      width: 9rem;
+      max-width: 40vw;
+    }
+    .mastery > i {
+      display: block;
+      height: 100%;
+      background: var(--sage);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+    .hearts {
+      display: flex;
+      gap: 0.2rem;
+      font-size: 1.15rem;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      color: var(--coral);
+    }
+    .hearts .empty { color: #D0D0CB; }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.15rem;
+      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(28 28 26 / 0.04);
+      margin-bottom: 0.75rem;
+    }
+    .card.warn { background: var(--coral-soft); box-shadow: none; }
+    .card.ok { background: var(--sage-soft); box-shadow: none; }
+    h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.25rem;
+    }
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 650;
+      margin: 0 0 0.5rem;
+      line-height: 1.3;
+    }
+    p { margin: 0; line-height: 1.45; }
+    .muted { color: var(--muted); }
+    .small { font-size: 0.875rem; }
+    .tiny { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .banner {
+      background: var(--coral-soft);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+      margin: 0.85rem 0 1rem;
+      line-height: 1.4;
+    }
+    .spacer { flex: 1; min-height: 1rem; }
+    .cta {
+      width: 100%;
+      min-height: 3.15rem;
+      border-radius: 14px;
+      background: var(--sage);
+      color: #fff;
+      font-weight: 650;
+      font-size: 1.05rem;
+      padding: 0.85rem 1rem;
+      margin-top: 0.5rem;
+    }
+    .cta.secondary {
+      background: transparent;
+      color: var(--sage);
+      box-shadow: inset 0 0 0 1.5px var(--sage);
+    }
+    .cta.ghost {
+      background: transparent;
+      color: var(--muted);
+      font-weight: 550;
+      min-height: 2.5rem;
+      margin-top: 0.25rem;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+    .chip {
+      min-height: 2.75rem;
+      border-radius: 999px;
+      padding: 0.55rem 1rem;
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1px var(--border);
+      font-weight: 550;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .chip.on {
+      background: var(--sage-soft);
+      box-shadow: inset 0 0 0 1.5px var(--sage);
+      color: var(--sage);
+    }
+    .chip.correct-flash {
+      background: var(--sage-soft);
+      box-shadow: inset 0 0 0 1.5px var(--sage);
+    }
+    .chip.wrong-flash {
+      background: var(--coral-soft);
+      box-shadow: inset 0 0 0 1.5px var(--coral);
+    }
+    .board-wrap {
+      margin: 0.85rem 0 0.35rem;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px var(--border);
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 100%;
+      aspect-ratio: 1;
+    }
+    .sq {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.35rem, 7.2vw, 1.85rem);
+      line-height: 1;
+      cursor: pointer;
+    }
+    .sq.light { background: var(--light-sq); }
+    .sq.dark { background: var(--dark-sq); }
+    .sq.hi { box-shadow: inset 0 0 0 3px #E8C84A; background: var(--hi); }
+    .sq.picked { box-shadow: inset 0 0 0 3px var(--sage); background: var(--hi-ok); }
+    .sq.legal { box-shadow: inset 0 0 0 3px var(--sage); }
+    .sq.legal::after {
+      content: "";
+      position: absolute;
+      width: 28%;
+      height: 28%;
+      border-radius: 50%;
+      background: rgb(91 143 107 / 0.55);
+    }
+    .sq.legal.has-piece::after {
+      width: auto; height: auto; inset: 8%;
+      border: 3px solid rgb(91 143 107 / 0.7);
+      background: transparent;
+      border-radius: 50%;
+    }
+    .sq .coord {
+      position: absolute;
+      font-size: 0.55rem;
+      font-weight: 650;
+      color: rgb(28 28 26 / 0.35);
+      pointer-events: none;
+    }
+    .sq .coord.file { bottom: 2px; right: 3px; }
+    .sq .coord.rank { top: 2px; left: 3px; }
+    .piece-w { color: #fafafa; text-shadow: 0 1px 0 #333, 0 0 1px #111; }
+    .piece-b { color: #1a1a1a; text-shadow: 0 1px 0 #fff6; }
+    .coach {
+      font-size: 1rem;
+      line-height: 1.5;
+      margin: 0.15rem 0 0;
+    }
+    .tip {
+      margin-top: 0.75rem;
+      padding: 0.7rem 0.85rem;
+      background: var(--sage-soft);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .tip strong { color: var(--sage); font-weight: 650; }
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.35rem;
+    }
+    .home-hero { padding-top: 1.25rem; }
+    .continue {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .continue .label { font-weight: 600; }
+    .tag-list { margin: 0.75rem 0 0; padding: 0; list-style: none; }
+    .tag-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    .tag-list li:last-child { border-bottom: 0; }
+    .note-soft {
+      margin: 0.75rem 0;
+      padding: 0.75rem 0.9rem;
+      border-radius: 14px;
+      background: #F0EFEA;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .hide { display: none !important; }
+    .foot-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+(function () {
+  const FILES = "abcdefgh";
+  const PIECES = {
+    K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
+    k: "♚", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙",
+  };
+  // Prefer filled forms for black for clearer contrast on light theme
+  const PIECES_SHOW = {
+    K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
+    k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟",
+  };
+
+  const STORAGE_KEY = "clean-coach-preview-v1";
+
+  function sq(file, rank) { return file + rank; }
+  function parseSq(s) {
+    return { f: FILES.indexOf(s[0]), r: parseInt(s[1], 10) };
+  }
+  function emptyBoard() {
+    const b = {};
+    for (let r = 1; r <= 8; r++) for (const f of FILES) b[f + r] = null;
+    return b;
+  }
+  function place(board, map) {
+    const b = emptyBoard();
+    Object.entries(map).forEach(([k, v]) => { b[k] = v; });
+    return b;
+  }
+  function fromFen(fen) {
+    const b = emptyBoard();
+    const [rows] = fen.split(" ");
+    const ranks = rows.split("/");
+    for (let ri = 0; ri < 8; ri++) {
+      const rank = 8 - ri;
+      let file = 0;
+      for (const ch of ranks[ri]) {
+        if (/\d/.test(ch)) file += parseInt(ch, 10);
+        else {
+          b[FILES[file] + rank] = ch;
+          file++;
+        }
+      }
+    }
+    return b;
+  }
+
+  const KNIGHT_FROM_E4 = ["d6", "f6", "c5", "g5", "c3", "g3", "d2", "f2"];
+
+  const CARDS = [
+    {
+      id: "teach-knight",
+      type: "teach",
+      tag: "knight-moves",
+      title: "The knight’s L",
+      coach: "Knights move in an L: two squares one way, then one sideways. They jump over pieces.",
+      board: place({ e4: "N" }),
+      highlight: KNIGHT_FROM_E4,
+      tip: null,
+    },
+    {
+      id: "drill-knight",
+      type: "drill",
+      mode: "multi-tap",
+      tag: "knight-moves",
+      title: "Tap every square this knight attacks",
+      prompt: "White knight on e4. Empty board — tap all eight L-squares, then Submit.",
+      board: place({ e4: "N" }),
+      accept: KNIGHT_FROM_E4,
+      explainOk: "Nice — those eight L-squares are the knight’s whole reach from e4.",
+      explainBad: "A knight from e4 hits d6, f6, c5, g5, c3, g3, d2 and f2.",
+    },
+    {
+      id: "teach-pawn",
+      type: "teach",
+      tag: "pawn-basics",
+      title: "Pawns: step and take",
+      coach: "Pawns move straight forward one square (two from the starting rank). They capture one square diagonally forward.",
+      board: place({ e2: "P", d3: "p", f3: "p" }),
+      highlight: ["e3", "e4", "d3", "f3"],
+      tip: null,
+    },
+    {
+      id: "drill-pawn",
+      type: "drill",
+      mode: "multi-tap",
+      tag: "pawn-basics",
+      title: "Where can this pawn go?",
+      prompt: "White pawn on e2, nothing in the way. Tap its legal move squares, then Submit.",
+      board: place({ e2: "P" }),
+      accept: ["e3", "e4"],
+      explainOk: "From the starting rank it can step to e3 or jump to e4.",
+      explainBad: "On an empty file, e2 can move to e3 or e4. No diagonal captures with nothing to take.",
+    },
+    {
+      id: "teach-check",
+      type: "teach",
+      tag: "check",
+      title: "What is check?",
+      coach: "Check means the king is attacked. You must get out of check before anything else.",
+      board: place({ e2: "R", e8: "k", e1: "K" }),
+      highlight: ["e8", "e2"],
+      tip: "Strong players always ask — is the king safe?",
+    },
+    {
+      id: "drill-check",
+      type: "drill",
+      mode: "mcq",
+      tag: "check",
+      title: "Is Black in check?",
+      prompt: "White rook on e2, black king on e8. Same open file.",
+      board: place({ e2: "R", e8: "k", e1: "K" }),
+      options: ["Yes", "No"],
+      answer: "Yes",
+      explainOk: "Yes — the rook stares straight up the e-file at the king.",
+      explainBad: "The rook on e2 attacks e8. Black’s king is in check.",
+    },
+    {
+      id: "teach-hanging",
+      type: "teach",
+      tag: "hanging",
+      title: "Hanging pieces",
+      coach: "A piece is hanging when it’s attacked and not safely defended. Free lunch — take it if it’s safe.",
+      board: fromFen("4k3/8/8/4q3/8/8/4N3/4K3 w"),
+      highlight: ["e5", "e2"],
+      tip: null,
+    },
+    {
+      id: "drill-hanging",
+      type: "drill",
+      mode: "tap-piece",
+      tag: "hanging",
+      title: "Tap the hanging piece",
+      prompt: "White to move. Which black piece is hanging?",
+      board: fromFen("4k3/8/8/4q3/8/8/4N3/4K3 w"),
+      accept: ["e5"],
+      followCapture: { from: "e2", to: "e5", piece: "N" },
+      explainOk: "The queen on e5 is attacked by the knight and nothing defends her. Nxe5 wins her.",
+      explainBad: "Look for the black queen on e5 — the knight on e2 attacks her, and she’s undefended.",
+    },
+    {
+      id: "drill-mate",
+      type: "drill",
+      mode: "mcq",
+      tag: "mate-stalemate",
+      title: "Mate or stalemate?",
+      prompt: "Black to move. King in the corner, white rook cutting the rank, white king nearby.",
+      board: fromFen("7k/5R2/6K1/8/8/8/8/8 b"),
+      options: ["Checkmate", "Stalemate", "Just check"],
+      answer: "Checkmate",
+      explainOk: "Checkmate — the king is in check from the rook and has nowhere safe.",
+      explainBad: "It’s checkmate. The rook checks on the 7th; the king has no flight and can’t capture safely.",
+    },
+  ];
+
+  // Session order: mixed teach+drill, ~8 cards (all of the above)
+  const SESSION_ORDER = CARDS.map((c) => c.id);
+
+  function loadState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+    } catch {
+      return {};
+    }
+  }
+  function saveState(partial) {
+    const next = { ...loadState(), ...partial };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    return next;
+  }
+
+  const state = {
+    screen: "home",
+    rung: 1,
+    hearts: 3,
+    cardIndex: 0,
+    mastery: 0,
+    picks: new Set(),
+    selected: null,
+    feedback: null, // { ok, explain, lostHeart, rungNote }
+    struggleTags: [],
+    sessionWrong: [],
+    sessionDone: false,
+    hangingStep: 0, // 0 tap piece, 1 confirm take
+    rungNoteShown: false,
+  };
+
+  function hydrate() {
+    const s = loadState();
+    if (typeof s.rung === "number") state.rung = s.rung || 1;
+    if (Array.isArray(s.struggleTags)) state.struggleTags = s.struggleTags;
+  }
+
+  function hotStruggle() {
+    return state.struggleTags[0] || null;
+  }
+
+  function tagLabel(tag) {
+    const map = {
+      "knight-moves": "Knight L-moves",
+      "pawn-basics": "Pawn moves",
+      check: "Spotting check",
+      hanging: "Hanging pieces",
+      "mate-stalemate": "Mate vs stalemate",
+    };
+    return map[tag] || tag;
+  }
+
+  function currentCard() {
+    const id = SESSION_ORDER[state.cardIndex];
+    return CARDS.find((c) => c.id === id);
+  }
+
+  function masteryPct() {
+    if (SESSION_ORDER.length === 0) return 0;
+    return Math.round((state.cardIndex / SESSION_ORDER.length) * 100);
+  }
+
+  // ——— Board render ———
+  function renderBoard(board, opts = {}) {
+    const {
+      highlight = [],
+      picked = [],
+      legalHints = [],
+      interactive = false,
+      showCoords = true,
+    } = opts;
+    const hi = new Set(highlight);
+    const pk = new Set(picked);
+    const legal = new Set(legalHints);
+    let html = '<div class="board-wrap"><div class="board" role="grid" aria-label="Chess board">';
+    for (let rank = 8; rank >= 1; rank--) {
+      for (let fi = 0; fi < 8; fi++) {
+        const file = FILES[fi];
+        const name = file + rank;
+        const isLight = (fi + rank) % 2 === 1;
+        const piece = board[name];
+        const classes = ["sq", isLight ? "light" : "dark"];
+        if (hi.has(name)) classes.push("hi");
+        if (pk.has(name)) classes.push("picked");
+        if (legal.has(name)) classes.push("legal");
+        if (piece) classes.push("has-piece");
+        let coords = "";
+        if (showCoords) {
+          if (rank === 1) coords += `<span class="coord file">${file}</span>`;
+          if (fi === 0) coords += `<span class="coord rank">${rank}</span>`;
+        }
+        let pieceHtml = "";
+        if (piece) {
+          const isWhite = piece === piece.toUpperCase();
+          pieceHtml = `<span class="${isWhite ? "piece-w" : "piece-b"}">${PIECES_SHOW[piece]}</span>`;
+        }
+        const data = interactive ? ` data-sq="${name}"` : "";
+        html += `<div class="${classes.join(" ")}"${data}>${coords}${pieceHtml}</div>`;
+      }
+    }
+    html += "</div></div>";
+    return html;
+  }
+
+  function chromeHtml() {
+    const hearts = [0, 1, 2].map((i) =>
+      `<span class="${i < state.hearts ? "" : "empty"}">${i < state.hearts ? "♥" : "♡"}</span>`
+    ).join("");
+    const pct = Math.max(state.mastery, masteryPct());
+    return `
+      <div class="chrome">
+        <div class="chrome-meta">
+          <div class="chrome-label">Foundation · Rung ${state.rung}</div>
+          <div class="mastery" aria-hidden="true"><i style="width:${pct}%"></i></div>
+        </div>
+        <div class="hearts" aria-label="${state.hearts} hearts left">${hearts}</div>
+      </div>`;
+  }
+
+  // ——— Screens ———
+  function renderHome() {
+    const struggle = hotStruggle();
+    const banner = struggle
+      ? `<div class="banner">Last time felt sticky on <strong>${tagLabel(struggle)}</strong> — we’ll ease back in.</div>`
+      : "";
+    return `
+      <div class="home-hero">
+        <p class="tiny">Chess learning</p>
+        <h1>Clean Coach</h1>
+        <p class="muted small">Calm lessons. Short drills. Honest feedback.</p>
+      </div>
+      ${banner}
+      <div class="card">
+        <div class="continue">
+          <div>
+            <div class="tiny">Continue</div>
+            <div class="label">Foundation · Rung ${state.rung}</div>
+          </div>
+          <div class="muted small">~5 min</div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" data-action="play">Play session</button>
+      <p class="foot-note">Direction preview · Foundation only</p>`;
+  }
+
+  function renderTeach(card) {
+    const tip = card.tip
+      ? `<div class="tip"><strong>Master tip.</strong> ${card.tip}</div>`
+      : "";
+    return `
+      ${chromeHtml()}
+      <p class="tiny">Teach</p>
+      <h2>${card.title}</h2>
+      <p class="coach">${card.coach}</p>
+      ${renderBoard(card.board, { highlight: card.highlight || [] })}
+      ${tip}
+      <div class="spacer"></div>
+      <button class="cta" data-action="got-it">Got it — quiz me</button>`;
+  }
+
+  function renderDrill(card) {
+    const picked = [...state.picks];
+    let body = "";
+    if (card.mode === "multi-tap") {
+      body = `
+        ${renderBoard(card.board, {
+          interactive: true,
+          picked,
+          highlight: [],
+        })}
+        <p class="muted small" style="margin-top:0.5rem">${picked.length} selected</p>
+        <button class="cta" data-action="submit-multi" ${picked.length ? "" : "disabled"}>Submit</button>
+        <button class="cta ghost" data-action="clear-picks">Clear</button>`;
+    } else if (card.mode === "mcq") {
+      const chips = card.options
+        .map(
+          (o) =>
+            `<button class="chip ${state.selected === o ? "on" : ""}" data-action="pick-mcq" data-value="${o}">${o}</button>`
+        )
+        .join("");
+      body = `
+        ${renderBoard(card.board, { highlight: [] })}
+        <div class="chips">${chips}</div>
+        <button class="cta" data-action="submit-mcq" ${state.selected ? "" : "disabled"}>Submit</button>`;
+    } else if (card.mode === "tap-piece") {
+      if (state.hangingStep === 0) {
+        body = `
+          ${renderBoard(card.board, {
+            interactive: true,
+            picked,
+            highlight: [],
+          })}
+          <button class="cta" data-action="submit-tap" ${picked.length ? "" : "disabled"}>That’s the one</button>`;
+      } else {
+        const after = { ...card.board };
+        // Show capture ready: highlight knight and queen
+        body = `
+          ${renderBoard(after, {
+            highlight: [card.followCapture.from, card.followCapture.to],
+            legalHints: [card.followCapture.to],
+            interactive: true,
+          })}
+          <p class="coach" style="margin-top:0.6rem">Take it with the knight.</p>
+          <button class="cta" data-action="do-capture">Take it · Nxe5</button>`;
+      }
+    }
+    return `
+      ${chromeHtml()}
+      <p class="tiny">Drill</p>
+      <h2>${card.title}</h2>
+      <p class="muted small">${card.prompt}</p>
+      ${body}`;
+  }
+
+  function renderFeedback() {
+    const fb = state.feedback;
+    const cls = fb.ok ? "ok" : "warn";
+    const head = fb.ok ? "That’s it" : "Not quite";
+    const note = fb.rungNote
+      ? `<div class="note-soft">${fb.rungNote}</div>`
+      : "";
+    return `
+      ${chromeHtml()}
+      <div class="card ${cls}">
+        <p class="tiny">${head}</p>
+        <p class="coach">${fb.explain}</p>
+      </div>
+      ${note}
+      <div class="spacer"></div>
+      <button class="cta" data-action="next">Next</button>`;
+  }
+
+  function renderSessionEnd() {
+    const due = state.sessionWrong.length
+      ? state.sessionWrong.slice(0, 2)
+      : ["knight-moves", "hanging"];
+    const uniqueDue = [...new Set(due)].slice(0, 2);
+    const weakest = uniqueDue[0] || "hanging";
+    const tags = uniqueDue
+      .map((t) => `<li><span>${tagLabel(t)}</span><span class="muted small">due tomorrow</span></li>`)
+      .join("");
+    return `
+      <p class="tiny">Session</p>
+      <h1>Nice work</h1>
+      <p class="muted">You stayed on Foundation · Rung ${state.rung}.</p>
+      <div class="card" style="margin-top:1rem">
+        <p class="tiny">Due tomorrow</p>
+        <ul class="tag-list">${tags}</ul>
+      </div>
+      <div class="card">
+        <p class="tiny">Weakest just now</p>
+        <p style="font-weight:600;margin-top:0.35rem">${tagLabel(weakest)}</p>
+        <p class="muted small" style="margin-top:0.35rem">We’ll revisit it gently next time.</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" data-action="done">Done</button>`;
+  }
+
+  function render() {
+    const root = document.getElementById("app");
+    let html = "";
+    if (state.screen === "home") html = renderHome();
+    else if (state.screen === "teach") html = renderTeach(currentCard());
+    else if (state.screen === "drill") html = renderDrill(currentCard());
+    else if (state.screen === "feedback") html = renderFeedback();
+    else if (state.screen === "end") html = renderSessionEnd();
+    root.innerHTML = html;
+    bind();
+  }
+
+  function bind() {
+    const root = document.getElementById("app");
+    root.querySelectorAll("[data-action]").forEach((el) => {
+      el.addEventListener("click", onAction);
+    });
+    root.querySelectorAll(".sq[data-sq]").forEach((el) => {
+      el.addEventListener("click", onSquare);
+    });
+  }
+
+  function startSession() {
+    state.screen = "teach";
+    state.hearts = 3;
+    state.cardIndex = 0;
+    state.mastery = 0;
+    state.picks = new Set();
+    state.selected = null;
+    state.feedback = null;
+    state.sessionWrong = [];
+    state.sessionDone = false;
+    state.hangingStep = 0;
+    state.rungNoteShown = false;
+    saveState({ hearts: 3, rung: state.rung });
+    showCurrentCard();
+  }
+
+  function showCurrentCard() {
+    if (state.cardIndex >= SESSION_ORDER.length) {
+      endSession();
+      return;
+    }
+    const card = currentCard();
+    state.picks = new Set();
+    state.selected = null;
+    state.hangingStep = 0;
+    state.feedback = null;
+    state.screen = card.type === "teach" ? "teach" : "drill";
+    state.mastery = masteryPct();
+    render();
+  }
+
+  function advanceAfterTeach() {
+    state.cardIndex += 1;
+    state.mastery = masteryPct();
+    showCurrentCard();
+  }
+
+  function sameSet(a, b) {
+    if (a.length !== b.length) return false;
+    const s = new Set(a);
+    return b.every((x) => s.has(x));
+  }
+
+  function applyResult(ok, card) {
+    let lostHeart = false;
+    let rungNote = null;
+    if (!ok) {
+      state.hearts = Math.max(0, state.hearts - 1);
+      lostHeart = true;
+      state.sessionWrong.push(card.tag);
+      const tags = [card.tag, ...state.struggleTags.filter((t) => t !== card.tag)].slice(0, 4);
+      state.struggleTags = tags;
+      saveState({ struggleTags: tags, hearts: state.hearts });
+      if (state.hearts === 0 && !state.rungNoteShown) {
+        state.rungNoteShown = true;
+        rungNote =
+          "Hearts empty — soft reset. In the full app you’d step back one rung. For this preview we stay on Rung 1 and keep going.";
+        state.hearts = 3; // soft refill so session can finish
+        saveState({ hearts: 3 });
+      }
+    } else {
+      saveState({ hearts: state.hearts });
+    }
+    state.feedback = {
+      ok,
+      explain: ok ? card.explainOk : card.explainBad,
+      lostHeart,
+      rungNote,
+    };
+    state.screen = "feedback";
+    state.mastery = Math.round(((state.cardIndex + 1) / SESSION_ORDER.length) * 100);
+    render();
+  }
+
+  function endSession() {
+    state.screen = "end";
+    state.sessionDone = true;
+    const tags = state.sessionWrong.length
+      ? [...new Set(state.sessionWrong)].slice(0, 2)
+      : state.struggleTags.slice(0, 2);
+    if (tags.length) {
+      state.struggleTags = tags;
+      saveState({ struggleTags: tags, rung: state.rung });
+    }
+    render();
+  }
+
+  function onAction(e) {
+    const action = e.currentTarget.getAttribute("data-action");
+    const card = currentCard();
+    if (action === "play") {
+      startSession();
+      return;
+    }
+    if (action === "got-it") {
+      advanceAfterTeach();
+      return;
+    }
+    if (action === "clear-picks") {
+      state.picks = new Set();
+      render();
+      return;
+    }
+    if (action === "pick-mcq") {
+      state.selected = e.currentTarget.getAttribute("data-value");
+      render();
+      return;
+    }
+    if (action === "submit-multi") {
+      const ok = sameSet([...state.picks], card.accept);
+      applyResult(ok, card);
+      return;
+    }
+    if (action === "submit-mcq") {
+      const ok = state.selected === card.answer;
+      applyResult(ok, card);
+      return;
+    }
+    if (action === "submit-tap") {
+      const ok = [...state.picks].some((p) => card.accept.includes(p));
+      if (ok && card.followCapture) {
+        state.hangingStep = 1;
+        state.picks = new Set();
+        render();
+        return;
+      }
+      applyResult(ok, card);
+      return;
+    }
+    if (action === "do-capture") {
+      // Animate capture on board briefly then success
+      const c = { ...card.board };
+      c[card.followCapture.to] = card.followCapture.piece;
+      c[card.followCapture.from] = null;
+      card._capturedBoard = c;
+      applyResult(true, card);
+      return;
+    }
+    if (action === "next") {
+      state.cardIndex += 1;
+      showCurrentCard();
+      return;
+    }
+    if (action === "done") {
+      state.screen = "home";
+      render();
+    }
+  }
+
+  function onSquare(e) {
+    const name = e.currentTarget.getAttribute("data-sq");
+    const card = currentCard();
+    if (!card || state.screen !== "drill") return;
+
+    if (card.mode === "multi-tap") {
+      if (state.picks.has(name)) state.picks.delete(name);
+      else state.picks.add(name);
+      render();
+      return;
+    }
+    if (card.mode === "tap-piece" && state.hangingStep === 0) {
+      state.picks = new Set([name]);
+      render();
+      return;
+    }
+    if (card.mode === "tap-piece" && state.hangingStep === 1) {
+      if (name === card.followCapture.to || name === card.followCapture.from) {
+        const c = { ...card.board };
+        c[card.followCapture.to] = card.followCapture.piece;
+        c[card.followCapture.from] = null;
+        applyResult(true, card);
+      }
+    }
+  }
+
+  // Boot
+  hydrate();
+  render();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+})();
+  </script>
+</body>
+</html>

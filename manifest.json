@@ -1,0 +1,19 @@
+{
+  "name": "Clean Coach",
+  "short_name": "Clean Coach",
+  "description": "Chess learning preview — Foundation rung",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F7F5",
+  "theme_color": "#5B8F6B",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
