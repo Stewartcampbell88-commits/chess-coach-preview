@@ -296,12 +296,57 @@
       font-size: 0.75rem;
       margin-top: 1.25rem;
     }
+    .update-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: var(--sage-soft);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.9rem;
+      margin: 0.85rem 0 0.75rem;
+      line-height: 1.4;
+    }
+    .update-banner strong { font-weight: 650; }
+    .update-banner .cta {
+      width: auto;
+      min-height: 2.5rem;
+      margin-top: 0;
+      padding: 0.55rem 0.95rem;
+      font-size: 0.95rem;
+    }
+    .update-card .cta {
+      min-height: 2.75rem;
+      font-size: 0.95rem;
+      margin-top: 0.65rem;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(1.5rem, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(28 28 26 / 0.12);
+      z-index: 40;
+      max-width: min(20rem, calc(100vw - 2rem));
+      font-size: 0.875rem;
+      line-height: 1.4;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="app"></div>
+  <div id="toast" class="toast hide" role="status" aria-live="polite"></div>
   <script>
 (function () {
+  const APP_VERSION = "chess-coach-v2";
   const FILES = "abcdefgh";
   const PIECES = {
     K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
@@ -487,6 +532,15 @@
     rungNoteShown: false,
   };
 
+  const ui = {
+    swReg: null,
+    updateReady: false,
+    updateChecking: false,
+    refreshing: false,
+    toastTimer: null,
+    appVersion: APP_VERSION,
+  };
+
   function hydrate() {
     const s = loadState();
     if (typeof s.rung === "number") state.rung = s.rung || 1;
@@ -576,17 +630,77 @@
   }
 
   // ——— Screens ———
+
+  function softToast(msg, desc) {
+    const el = document.getElementById("toast");
+    if (!el) return;
+    el.textContent = desc ? `${msg} — ${desc}` : msg;
+    el.classList.remove("hide");
+    clearTimeout(ui.toastTimer);
+    ui.toastTimer = setTimeout(() => el.classList.add("hide"), 2800);
+  }
+
+  async function applyUpdate() {
+    const reg = ui.swReg || (await navigator.serviceWorker.getRegistration());
+    const waiting = reg && reg.waiting;
+    if (waiting) {
+      ui.refreshing = true;
+      waiting.postMessage({ type: "SKIP_WAITING" });
+      setTimeout(() => location.reload(), 1500);
+      return;
+    }
+    try { await reg?.update(); } catch {}
+    location.reload();
+  }
+
+  async function checkForUpdate() {
+    if (!("serviceWorker" in navigator) || !location.protocol.startsWith("http")) {
+      softToast("Updates need the web app", "Open the GitHub Pages link, not a downloaded file.");
+      return;
+    }
+    ui.updateChecking = true;
+    softToast("Checking…");
+    render();
+    try {
+      const reg = ui.swReg || (await navigator.serviceWorker.getRegistration());
+      if (!reg) {
+        softToast("No service worker yet");
+        ui.updateChecking = false;
+        render();
+        return;
+      }
+      await reg.update();
+      await new Promise((r) => setTimeout(r, 600));
+      const pending = Boolean(reg.waiting || (reg.installing && navigator.serviceWorker.controller));
+      if (pending || ui.updateReady) {
+        ui.updateReady = true;
+        softToast("Update available");
+      } else {
+        softToast("You're on the latest");
+      }
+    } catch {
+      softToast("Check failed");
+    }
+    ui.updateChecking = false;
+    render();
+  }
+
   function renderHome() {
     const struggle = hotStruggle();
     const banner = struggle
       ? `<div class="banner">Last time felt sticky on <strong>${tagLabel(struggle)}</strong> — we’ll ease back in.</div>`
       : "";
+    const updateBanner = ui.updateReady
+      ? `<div class="update-banner"><span><strong>Update available</strong></span><button class="cta" data-action="apply-update">Update now</button></div>`
+      : "";
+    const checkLabel = ui.updateChecking ? "Checking…" : "Check for update";
     return `
       <div class="home-hero">
         <p class="tiny">Chess learning</p>
         <h1>Clean Coach</h1>
         <p class="muted small">Calm lessons. Short drills. Honest feedback.</p>
       </div>
+      ${updateBanner}
       ${banner}
       <div class="card">
         <div class="continue">
@@ -599,6 +713,13 @@
       </div>
       <div class="spacer"></div>
       <button class="cta" data-action="play">Play session</button>
+      <div class="card update-card" style="margin-top:1rem">
+        <p class="tiny">App version</p>
+        <p class="small" style="margin-top:0.35rem;font-weight:650">${ui.appVersion || APP_VERSION}</p>
+        <p class="muted small" style="margin-top:0.35rem">Checks GitHub Pages for a new build when you open or focus the app.</p>
+        <button class="cta secondary" data-action="check-update"${ui.updateChecking ? " disabled" : ""}>${checkLabel}</button>
+        ${ui.updateReady ? `<button class="cta" data-action="apply-update">Update now</button>` : ""}
+      </div>
       <p class="foot-note">Direction preview · Foundation only</p>`;
   }
 
@@ -883,6 +1004,14 @@
     if (action === "done") {
       state.screen = "home";
       render();
+      return;
+    }
+    if (action === "check-update") {
+      checkForUpdate();
+      return;
+    }
+    if (action === "apply-update") {
+      applyUpdate();
     }
   }
 
@@ -916,10 +1045,39 @@
   hydrate();
   render();
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+  if (location.protocol.startsWith("http") && "serviceWorker" in navigator) {
+    function watchInstalling(worker) {
+      if (!worker) return;
+      worker.addEventListener("statechange", () => {
+        if (worker.state === "installed" && navigator.serviceWorker.controller) {
+          ui.updateReady = true;
+          render();
+        }
+      });
+    }
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (ui.refreshing) location.reload();
     });
+    navigator.serviceWorker.register(new URL("sw.js", location.href).href).then((reg) => {
+      ui.swReg = reg;
+      try { reg.update(); } catch {}
+      reg.addEventListener("updatefound", () => watchInstalling(reg.installing));
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        ui.updateReady = true;
+        render();
+      }
+      watchInstalling(reg.installing);
+    }).catch(() => {});
+    const pokeUpdate = () => {
+      if (document.visibilityState !== "visible") return;
+      const reg = ui.swReg;
+      if (reg && typeof reg.update === "function") {
+        try { reg.update(); } catch {}
+      }
+    };
+    document.addEventListener("visibilitychange", pokeUpdate);
+    window.addEventListener("focus", pokeUpdate);
+    setInterval(pokeUpdate, 60 * 60 * 1000);
   }
 })();
   </script>

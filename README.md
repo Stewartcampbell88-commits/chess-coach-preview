@@ -6,13 +6,17 @@ Thin Foundation loop for Stewart Campbell’s chess learning app.
 
 This is a **direction test** — not the full app. No accounts, no APK, no arcade chrome. Feel Home → Teach → Drill → hearts feedback → session end on your phone.
 
-## Force-refresh (service worker)
+## Updates (service worker)
 
-Cache name: `chess-coach-v1`. If the page looks stale after an update:
+Cache / app version: `chess-coach-v2` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep).
 
-1. Open the Pages URL
-2. Hard refresh (iOS Safari: close tab, clear site data, reopen; Android Chrome: DevTools → Application → Clear storage, or swipe away PWA and reopen)
-3. Or visit once with DevTools open and “Update on reload” checked
+When shipping a change, bump both to `chess-coach-vN`. The phone PWA checks GitHub Pages on open/focus (and hourly) via `reg.update()`. If a new service worker is waiting, Home shows **Update available** → **Update now**. You can also tap **Check for update** on Home.
+
+If the page still looks stale after a bump:
+
+1. Open the Pages URL (or the home-screen app)
+2. Tap **Check for update**, then **Update now** if offered
+3. Or hard-refresh / clear site data and reopen
 
 ## Stack
 
