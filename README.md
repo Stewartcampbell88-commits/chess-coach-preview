@@ -8,7 +8,7 @@ This is a **direction test** — not the full app. No accounts, no APK, no arcad
 
 ## Updates (service worker)
 
-Cache / app version: `chess-coach-v2` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep).
+Cache / app version: `chess-coach-v3` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep).
 
 When shipping a change, bump both to `chess-coach-vN`. The phone PWA checks GitHub Pages on open/focus (and hourly) via `reg.update()`. If a new service worker is waiting, Home shows **Update available** → **Update now**. You can also tap **Check for update** on Home.
 
