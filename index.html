@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#5B8F6B" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Clean Coach" />
-  <title>Clean Coach</title>
+  <meta name="apple-mobile-web-app-title" content="Chess - Teacher" />
+  <title>Chess - Teacher</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="favicon.svg" />
@@ -17,13 +17,14 @@
       --surface: #FFFFFF;
       --sage: #5B8F6B;
       --sage-soft: #E8F1EB;
+      --sage-deep: #3F6B4C;
       --coral: #D97B6C;
       --coral-soft: #F8E8E5;
       --text: #1C1C1A;
       --muted: #6B6B66;
       --border: #E6E6E1;
-      --light-sq: #F0EDE6;
-      --dark-sq: #B7C4B0;
+      --light-sq: #F3EFE4;
+      --dark-sq: #7A9A7E;
       --hi: #F5E6A8;
       --hi-ok: #A8D5B5;
       --hi-bad: #F0B8B0;
@@ -108,6 +109,10 @@
     }
     .card.warn { background: var(--coral-soft); box-shadow: none; }
     .card.ok { background: var(--sage-soft); box-shadow: none; }
+    .card.clear {
+      background: linear-gradient(160deg, var(--sage-soft), #fff 70%);
+      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(91 143 107 / 0.12);
+    }
     h1 {
       font-size: 1.65rem;
       font-weight: 700;
@@ -186,60 +191,105 @@
       background: var(--coral-soft);
       box-shadow: inset 0 0 0 1.5px var(--coral);
     }
+
+    /* ——— Board crispness ——— */
     .board-wrap {
       margin: 0.85rem 0 0.35rem;
+      width: 100%;
+      aspect-ratio: 1;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: inset 0 0 0 1px var(--border);
+      background: var(--sage-deep);
+      box-shadow:
+        0 0 0 2px var(--sage),
+        0 0 0 5px var(--sage-soft),
+        0 10px 28px rgb(28 28 26 / 0.1);
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
+      padding: 3px;
     }
     .board {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(8, minmax(0, 1fr));
       width: 100%;
-      aspect-ratio: 1;
+      height: 100%;
+      border-radius: 9px;
+      overflow: hidden;
+      container-type: size;
     }
     .sq {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.35rem, 7.2vw, 1.85rem);
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
       line-height: 1;
       cursor: pointer;
+      font-size: 0; /* size lives on the piece span */
     }
     .sq.light { background: var(--light-sq); }
     .sq.dark { background: var(--dark-sq); }
-    .sq.hi { box-shadow: inset 0 0 0 3px #E8C84A; background: var(--hi); }
-    .sq.picked { box-shadow: inset 0 0 0 3px var(--sage); background: var(--hi-ok); }
+    .sq.hi { box-shadow: inset 0 0 0 3px #E0B830; background: var(--hi); }
+    .sq.picked { box-shadow: inset 0 0 0 3px var(--sage-deep); background: var(--hi-ok); }
     .sq.legal { box-shadow: inset 0 0 0 3px var(--sage); }
     .sq.legal::after {
       content: "";
       position: absolute;
-      width: 28%;
-      height: 28%;
+      width: 26%;
+      height: 26%;
       border-radius: 50%;
-      background: rgb(91 143 107 / 0.55);
+      background: rgb(63 107 76 / 0.55);
+      pointer-events: none;
     }
     .sq.legal.has-piece::after {
-      width: auto; height: auto; inset: 8%;
-      border: 3px solid rgb(91 143 107 / 0.7);
+      width: auto; height: auto; inset: 10%;
+      border: 2.5px solid rgb(63 107 76 / 0.75);
       background: transparent;
       border-radius: 50%;
     }
     .sq .coord {
       position: absolute;
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       font-weight: 650;
-      color: rgb(28 28 26 / 0.35);
+      color: rgb(28 28 26 / 0.38);
       pointer-events: none;
+      line-height: 1;
+      z-index: 1;
     }
-    .sq .coord.file { bottom: 2px; right: 3px; }
-    .sq .coord.rank { top: 2px; left: 3px; }
-    .piece-w { color: #fafafa; text-shadow: 0 1px 0 #333, 0 0 1px #111; }
-    .piece-b { color: #1a1a1a; text-shadow: 0 1px 0 #fff6; }
+    .sq.dark .coord { color: rgb(243 239 228 / 0.55); }
+    .sq .coord.file { bottom: 1px; right: 2px; }
+    .sq .coord.rank { top: 1px; left: 2px; }
+    .sq .piece {
+      display: block;
+      font-size: 62cqmin;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .piece-w {
+      color: #FFFEF8;
+      -webkit-text-stroke: 0.5px #1a1a1a;
+      paint-order: stroke fill;
+      text-shadow:
+        0 0 0.5px #111,
+        0 1px 0 #2a2a2a,
+        0 1.5px 2px rgb(0 0 0 / 0.35);
+    }
+    .piece-b {
+      color: #141412;
+      -webkit-text-stroke: 0.35px #0a0a0a;
+      paint-order: stroke fill;
+      text-shadow:
+        0 0 0.5px #000,
+        0 1px 0 rgb(255 255 255 / 0.25),
+        0 1.5px 2px rgb(0 0 0 / 0.2);
+    }
+
     .coach {
       font-size: 1rem;
       line-height: 1.5;
@@ -262,14 +312,49 @@
       margin-bottom: 0.35rem;
     }
     .home-hero { padding-top: 1.25rem; }
+    .goal-line {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--sage-deep);
+      margin: 0.35rem 0 0;
+    }
     .continue {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      margin-top: 1rem;
+      margin-top: 0.15rem;
     }
     .continue .label { font-weight: 600; }
+    .level-dots {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.85rem;
+      flex-wrap: wrap;
+    }
+    .level-dot {
+      flex: 1;
+      min-width: 3.5rem;
+      text-align: center;
+      padding: 0.45rem 0.35rem;
+      border-radius: 10px;
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1px var(--border);
+      font-size: 0.7rem;
+      font-weight: 650;
+      color: var(--muted);
+    }
+    .level-dot.done {
+      background: var(--sage-soft);
+      box-shadow: inset 0 0 0 1.5px var(--sage);
+      color: var(--sage-deep);
+    }
+    .level-dot.current {
+      background: var(--sage);
+      box-shadow: none;
+      color: #fff;
+    }
+    .level-dot.locked { opacity: 0.55; }
     .tag-list { margin: 0.75rem 0 0; padding: 0; list-style: none; }
     .tag-list li {
       display: flex;
@@ -295,6 +380,34 @@
       color: var(--muted);
       font-size: 0.75rem;
       margin-top: 1.25rem;
+    }
+    .stars {
+      font-size: 1.35rem;
+      letter-spacing: 0.15em;
+      color: var(--sage);
+      margin: 0.5rem 0 0.25rem;
+    }
+    .timer-bar {
+      margin: 0.65rem 0 0.25rem;
+      height: 5px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .timer-bar > i {
+      display: block;
+      height: 100%;
+      background: var(--coral);
+      border-radius: 99px;
+      width: 100%;
+      transition: width 0.2s linear;
+    }
+    .timer-bar.ok > i { background: var(--sage); }
+    .timer-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: right;
     }
     .update-banner {
       display: flex;
@@ -346,24 +459,16 @@
   <div id="toast" class="toast hide" role="status" aria-live="polite"></div>
   <script>
 (function () {
-  const APP_VERSION = "chess-coach-v3";
+  const APP_VERSION = "chess-coach-v4";
   const FILES = "abcdefgh";
-  const PIECES = {
-    K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
-    k: "♚", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙",
-  };
-  // Prefer filled forms for black for clearer contrast on light theme
   const PIECES_SHOW = {
     K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
     k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟",
   };
 
-  const STORAGE_KEY = "clean-coach-preview-v1";
+  // Schema bump so old Foundation state doesn't blank the ladder.
+  const STORAGE_KEY = "chess-teacher-v4";
 
-  function sq(file, rank) { return file + rank; }
-  function parseSq(s) {
-    return { f: FILES.indexOf(s[0]), r: parseInt(s[1], 10) };
-  }
   function emptyBoard() {
     const b = {};
     for (let r = 1; r <= 8; r++) for (const f of FILES) b[f + r] = null;
@@ -392,88 +497,74 @@
     return b;
   }
 
-  const KNIGHT_FROM_E4 = ["d6", "f6", "c5", "g5", "c3", "g3", "d2", "f2"];
+  // White system choice: Italian-ish (e4 + Nf3 + Bc4). Same shapes Stewart faces as Black.
+  const WHITE_SYSTEM = "italian";
+
+  const LEVELS = [
+    {
+      id: 1,
+      name: "Don't Hang Stuff",
+      short: "Hangs",
+      tags: ["hanging", "cct"],
+      blurb: "Stop giving pieces away for free.",
+      unlockTease: "Next up: Survive the Italian.",
+    },
+    {
+      id: 2,
+      name: "Survive the Italian",
+      short: "Italian",
+      tags: ["italian", "fried-liver"],
+      blurb: "Watch Ng5 — don't let Nxf7 cook your king.",
+      unlockTease: "Next up: One White System.",
+    },
+    {
+      id: 3,
+      name: "One White System",
+      short: "White",
+      tags: ["white-system", "italian-white"],
+      blurb: "e4 → Nf3 → Bc4. One reliable start.",
+      unlockTease: "Next up: Clock Habits.",
+    },
+    {
+      id: 4,
+      name: "Clock Habits",
+      short: "Clock",
+      tags: ["clock", "habits"],
+      blurb: "Leave time. Glance for hangs. Resign cleanly.",
+      unlockTease: "Ladder clear — keep the habits warm.",
+    },
+  ];
 
   const CARDS = [
+    // ——— Level 1: Don't Hang Stuff ———
     {
-      id: "teach-knight",
-      type: "teach",
-      tag: "knight-moves",
-      title: "The knight’s L",
-      coach: "Knights move in an L: two squares one way, then one sideways. They jump over pieces.",
-      board: place({ e4: "N" }),
-      highlight: KNIGHT_FROM_E4,
-      tip: null,
-    },
-    {
-      id: "drill-knight",
-      type: "drill",
-      mode: "multi-tap",
-      tag: "knight-moves",
-      title: "Tap every square this knight attacks",
-      prompt: "White knight on e4. Empty board — tap all eight L-squares, then Submit.",
-      board: place({ e4: "N" }),
-      accept: KNIGHT_FROM_E4,
-      explainOk: "Nice — those eight L-squares are the knight’s whole reach from e4.",
-      explainBad: "A knight from e4 hits d6, f6, c5, g5, c3, g3, d2 and f2.",
-    },
-    {
-      id: "teach-pawn",
-      type: "teach",
-      tag: "pawn-basics",
-      title: "Pawns: step and take",
-      coach: "Pawns move straight forward one square (two from the starting rank). They capture one square diagonally forward.",
-      board: place({ e2: "P", d3: "p", f3: "p" }),
-      highlight: ["e3", "e4", "d3", "f3"],
-      tip: null,
-    },
-    {
-      id: "drill-pawn",
-      type: "drill",
-      mode: "multi-tap",
-      tag: "pawn-basics",
-      title: "Where can this pawn go?",
-      prompt: "White pawn on e2, nothing in the way. Tap its legal move squares, then Submit.",
-      board: place({ e2: "P" }),
-      accept: ["e3", "e4"],
-      explainOk: "From the starting rank it can step to e3 or jump to e4.",
-      explainBad: "On an empty file, e2 can move to e3 or e4. No diagonal captures with nothing to take.",
-    },
-    {
-      id: "teach-check",
-      type: "teach",
-      tag: "check",
-      title: "What is check?",
-      coach: "Check means the king is attacked. You must get out of check before anything else.",
-      board: place({ e2: "R", e8: "k", e1: "K" }),
-      highlight: ["e8", "e2"],
-      tip: "Strong players always ask — is the king safe?",
-    },
-    {
-      id: "drill-check",
-      type: "drill",
-      mode: "mcq",
-      tag: "check",
-      title: "Is Black in check?",
-      prompt: "White rook on e2, black king on e8. Same open file.",
-      board: place({ e2: "R", e8: "k", e1: "K" }),
-      options: ["Yes", "No"],
-      answer: "Yes",
-      explainOk: "Yes — the rook stares straight up the e-file at the king.",
-      explainBad: "The rook on e2 attacks e8. Black’s king is in check.",
-    },
-    {
-      id: "teach-hanging",
+      id: "l1-teach-hang",
+      level: 1,
       type: "teach",
       tag: "hanging",
-      title: "Hanging pieces",
-      coach: "A piece is hanging when it’s attacked and not safely defended. Free lunch — take it if it’s safe.",
+      title: "What is hanging?",
+      coach: "A piece is hanging when it's attacked and not safely defended. Free lunch — take it if it's safe. Your Rapid leaks start here.",
       board: fromFen("4k3/8/8/4q3/8/8/4N3/4K3 w"),
       highlight: ["e5", "e2"],
-      tip: null,
+      tip: "Before every move, ask: what did I leave hanging?",
     },
     {
-      id: "drill-hanging",
+      id: "l1-drill-attacks",
+      level: 1,
+      type: "drill",
+      mode: "multi-tap",
+      tag: "cct",
+      title: "Tap every square this knight attacks",
+      prompt: "White knight on e4. Empty board — tap all eight L-squares, then Submit. (Don't tap e4 itself.)",
+      board: place({ e4: "N" }),
+      accept: ["d6", "f6", "c5", "g5", "c3", "g3", "d2", "f2"],
+      lockedSquares: ["e4"],
+      explainOk: "Those eight L-squares are the knight's whole reach from e4. Attacks first — CCT habit.",
+      explainBad: "From e4 a knight hits d6, f6, c5, g5, c3, g3, d2 and f2 — not its own square.",
+    },
+    {
+      id: "l1-drill-hang-tap",
+      level: 1,
       type: "drill",
       mode: "tap-piece",
       tag: "hanging",
@@ -483,25 +574,216 @@
       accept: ["e5"],
       followCapture: { from: "e2", to: "e5", piece: "N" },
       explainOk: "The queen on e5 is attacked by the knight and nothing defends her. Nxe5 wins her.",
-      explainBad: "Look for the black queen on e5 — the knight on e2 attacks her, and she’s undefended.",
+      explainBad: "Look for the black queen on e5 — the knight on e2 attacks her, and she's undefended.",
     },
     {
-      id: "drill-mate",
+      id: "l1-drill-mcq",
+      level: 1,
       type: "drill",
       mode: "mcq",
-      tag: "mate-stalemate",
-      title: "Mate or stalemate?",
-      prompt: "Black to move. King in the corner, white rook cutting the rank, white king nearby.",
-      board: fromFen("7k/5R2/6K1/8/8/8/8/8 b"),
-      options: ["Checkmate", "Stalemate", "Just check"],
-      answer: "Checkmate",
-      explainOk: "Checkmate — the king is in check from the rook and has nowhere safe.",
-      explainBad: "It’s checkmate. The rook checks on the 7th; the king has no flight and can’t capture safely.",
+      tag: "hanging",
+      title: "Is the black bishop hanging?",
+      prompt: "White knight on c3, black bishop on e4, black pawn on d5. White to move.",
+      board: fromFen("4k3/8/8/3p4/4b3/2N5/8/4K3 w"),
+      options: ["Yes — take it", "No — it's defended", "It's pinned"],
+      answer: "No — it's defended",
+      explainOk: "The pawn on d5 defends e4. Capturing would lose the knight for a bishop only if d5 weren't there — here Nxe4 is met by dxe4.",
+      explainBad: "The bishop looks tasty, but d5 defends it. Hanging means attacked and not safely defended.",
+    },
+
+    // ——— Level 2: Survive the Italian ———
+    {
+      id: "l2-teach-ng5",
+      level: 2,
+      type: "teach",
+      tag: "italian",
+      title: "The Ng5 warning light",
+      coach: "After 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6, White can play 4.Ng5 — poking f7. Don't ignore it. Don't walk into Nxf7 disasters.",
+      board: fromFen("r1bqkb1r/pppp1ppp/2n2n2/4p1N1/2B1P3/8/PPPP1PPP/RNBQK2R b"),
+      highlight: ["g5", "f7", "c4"],
+      tip: "Fried Liver ideas: Ng5 then Nxf7. Meet it with calm replies — often …d5.",
+    },
+    {
+      id: "l2-drill-threat",
+      level: 2,
+      type: "drill",
+      mode: "mcq",
+      tag: "fried-liver",
+      title: "What's White threatening?",
+      prompt: "Position after 4.Ng5. You're Black. What's the punchline?",
+      board: fromFen("r1bqkb1r/pppp1ppp/2n2n2/4p1N1/2B1P3/8/PPPP1PPP/RNBQK2R b"),
+      options: ["Nxf7 forking king and rook", "Bxf7+ then Qh5", "Nxh7 winning a pawn", "Nothing serious"],
+      answer: "Nxf7 forking king and rook",
+      explainOk: "Nxf7 forks king and rook (and hits the queen's file vibes). That's the Fried Liver / Traxler territory — respect f7.",
+      explainBad: "The classic shot is Nxf7 — fork on king and rook. That's why Ng5 must be answered.",
+    },
+    {
+      id: "l2-drill-reply",
+      level: 2,
+      type: "drill",
+      mode: "mcq",
+      tag: "italian",
+      title: "Safe reply to Ng5?",
+      prompt: "You're Black after 4.Ng5. Which reply is the reliable stopper?",
+      board: fromFen("r1bqkb1r/pppp1ppp/2n2n2/4p1N1/2B1P3/8/PPPP1PPP/RNBQK2R b"),
+      options: ["…d5 (strike the bishop)", "…h6 (kick the knight)", "…Nxe4 (grab a centre pawn)", "…Bc5 (ignore it)"],
+      answer: "…d5 (strike the bishop)",
+      explainOk: "…d5 hits the Bc4 and blunts the Nxf7 idea. Main-line Two Knights: meet Ng5 with …d5.",
+      explainBad: "…h6 lets Nxf7 land; …Nxe4 can get messy; ignoring it invites disaster. Prefer …d5.",
+    },
+    {
+      id: "l2-drill-king",
+      level: 2,
+      type: "drill",
+      mode: "mcq",
+      tag: "fried-liver",
+      title: "Is Black's king cooked?",
+      prompt: "White just played Nxf7. King must move or capture. Is this already mate?",
+      board: fromFen("r1bqkb1r/pppp1Npp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNBQK2R b"),
+      options: ["Checkmate already", "In check — not mate yet", "Not even check"],
+      answer: "In check — not mate yet",
+      explainOk: "It's check (knight forks king + rook), but not mate. King can take on f7 — though the aftermath is ugly if you weren't prepared.",
+      explainBad: "It's check from the knight, not mate. The king can capture on f7 — but you shouldn't have allowed this.",
+    },
+
+    // ——— Level 3: One White System (Italian-ish) ———
+    {
+      id: "l3-teach-system",
+      level: 3,
+      type: "teach",
+      tag: "white-system",
+      title: "Your White start: Italian-ish",
+      coach: "Pick one and stay consistent: 1.e4, 2.Nf3, 3.Bc4. Same shapes you face as Black — now you own them as White. Develop, castle, don't hang stuff.",
+      board: fromFen("rnbqkbnr/pppp1ppp/8/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b"),
+      highlight: ["e4", "f3", "c4"],
+      tip: "Order: e4 → Nf3 → Bc4. Then castle short. No early queen adventures.",
+    },
+    {
+      id: "l3-drill-next",
+      level: 3,
+      type: "drill",
+      mode: "tap-piece",
+      tag: "italian-white",
+      title: "Tap White's next developing move",
+      prompt: "You've played 1.e4 e5 2.Nf3. Tap the square for your bishop (Italian move).",
+      board: fromFen("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w"),
+      accept: ["c4"],
+      // No followCapture — landing the bishop is enough
+      explainOk: "Bc4 — Italian bishop. Eyes f7, clears the way to castle.",
+      explainBad: "The Italian move is Bc4. Develop the bishop to c4, then get the king safe.",
+    },
+    {
+      id: "l3-drill-order",
+      level: 3,
+      type: "drill",
+      mode: "mcq",
+      tag: "white-system",
+      title: "Best move order?",
+      prompt: "You're White, wanting the Italian setup. Which sequence is the calm plan?",
+      board: fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"),
+      options: [
+        "1.e4 2.Nf3 3.Bc4",
+        "1.e4 2.Qh5 3.Bc4",
+        "1.Nf3 2.Ng5 3.e4",
+        "1.e4 2.Bc4 3.Qf3",
+      ],
+      answer: "1.e4 2.Nf3 3.Bc4",
+      explainOk: "e4, Nf3, Bc4 — simple and consistent. Queen early is a trap for you, not them.",
+      explainBad: "Stick to e4 → Nf3 → Bc4. Early queen checks and random knight hops aren't your system.",
+    },
+    {
+      id: "l3-drill-wrong",
+      level: 3,
+      type: "drill",
+      mode: "mcq",
+      tag: "italian-white",
+      title: "What's wrong with this move?",
+      prompt: "White has e4, Nf3, Bc4. Black played …Nc6. White plays Qf3. What's the issue?",
+      board: fromFen("r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b"),
+      options: [
+        "Queen blocks the knight / early adventure",
+        "It's forced mate in two",
+        "It hangs the Bc4",
+        "Nothing — best move",
+      ],
+      answer: "Queen blocks the knight / early adventure",
+      explainOk: "Qf3 is a kids'-trap vibe. It blocks natural play and invites …Nd4 ideas. Develop, castle, then plan.",
+      explainBad: "Qf3 isn't losing on the spot, but it's the wrong habit — early queen, clumsy pieces. Prefer castling.",
+    },
+
+    // ——— Level 4: Clock Habits ———
+    {
+      id: "l4-teach-clock",
+      level: 4,
+      type: "teach",
+      tag: "clock",
+      title: "Don't flag — leave time",
+      coach: "Timeouts and abandons cost rating the same as blunders. Leave enough clock to think. When you're lost, resign cleanly — don't vanish. Before each move: 10-second hang glance.",
+      board: fromFen("4k3/8/8/4q3/8/8/4N3/4K3 w"),
+      highlight: ["e5"],
+      tip: "Habit: Checks · Captures · Threats, then move. Soft timer drills train the glance.",
+    },
+    {
+      id: "l4-drill-timed",
+      level: 4,
+      type: "drill",
+      mode: "timed-tap",
+      tag: "habits",
+      title: "Spot the hang — soft timer",
+      prompt: "White to move. Tap the hanging black piece before the soft timer runs out (~18s). No panic — accuracy still counts.",
+      board: fromFen("4k3/8/8/3n4/8/8/4R3/4K3 w"),
+      accept: ["d5"],
+      timerSec: 18,
+      explainOk: "The knight on d5 is hanging to the rook. Hang glance → take free stuff.",
+      explainBad: "Black's knight on d5 is attacked by the rook and undefended. That's the hang.",
+    },
+    {
+      id: "l4-drill-resign",
+      level: 4,
+      type: "drill",
+      mode: "mcq",
+      tag: "clock",
+      title: "Resign or abandon?",
+      prompt: "You're down a queen, 5 seconds left, opponent has a minute. What should you do?",
+      board: fromFen("4k3/8/8/8/8/8/8/3QK3 b"),
+      options: [
+        "Resign politely",
+        "Close the app / abandon",
+        "Let the clock flag on purpose",
+        "Ask for a draw",
+      ],
+      answer: "Resign politely",
+      explainOk: "Resign when it's clearly lost. Abandoning and flagging-on-purpose are poor habits — and still lose the points.",
+      explainBad: "Resign cleanly. Abandons and intentional flags don't save rating — they just burn trust and tilt.",
+    },
+    {
+      id: "l4-drill-glance",
+      level: 4,
+      type: "drill",
+      mode: "mcq",
+      tag: "habits",
+      title: "The 10-second rule",
+      prompt: "Before you play your move in Rapid, what's the quick habit?",
+      board: place({ e4: "N", e5: "q", e1: "K", e8: "k" }),
+      options: [
+        "Glance for hangs / CCT, then move",
+        "Move instantly to save time",
+        "Only calculate mate nets",
+        "Chat the opponent first",
+      ],
+      answer: "Glance for hangs / CCT, then move",
+      explainOk: "A short hang / CCT glance prevents one-move gifts. Speed without that glance is how 1500 stays far away.",
+      explainBad: "Instant moves without a hang glance are how pieces disappear. Build the 10-second habit.",
     },
   ];
 
-  // Session order: mixed teach+drill, ~8 cards (all of the above)
-  const SESSION_ORDER = CARDS.map((c) => c.id);
+  function cardsForLevel(levelId) {
+    return CARDS.filter((c) => c.level === levelId);
+  }
+
+  function levelMeta(id) {
+    return LEVELS.find((l) => l.id === id) || LEVELS[0];
+  }
 
   function loadState() {
     try {
@@ -518,19 +800,25 @@
 
   const state = {
     screen: "home",
-    rung: 1,
+    level: 1,
+    maxUnlocked: 1,
     hearts: 3,
     cardIndex: 0,
     mastery: 0,
     picks: new Set(),
     selected: null,
-    feedback: null, // { ok, explain, lostHeart, rungNote }
+    feedback: null,
     struggleTags: [],
     sessionWrong: [],
     sessionDone: false,
-    hangingStep: 0, // 0 tap piece, 1 confirm take
-    rungNoteShown: false,
+    hangingStep: 0,
+    levelNoteShown: false,
+    timerLeft: 0,
+    timerTotal: 0,
+    timerExpired: false,
   };
+
+  let timerInterval = null;
 
   const ui = {
     swReg: null,
@@ -543,7 +831,9 @@
 
   function hydrate() {
     const s = loadState();
-    if (typeof s.rung === "number") state.rung = s.rung || 1;
+    if (typeof s.level === "number" && s.level >= 1 && s.level <= 4) state.level = s.level;
+    if (typeof s.maxUnlocked === "number" && s.maxUnlocked >= 1) state.maxUnlocked = Math.min(4, s.maxUnlocked);
+    if (state.level > state.maxUnlocked) state.level = state.maxUnlocked;
     if (Array.isArray(s.struggleTags)) state.struggleTags = s.struggleTags;
   }
 
@@ -553,23 +843,63 @@
 
   function tagLabel(tag) {
     const map = {
-      "knight-moves": "Knight L-moves",
-      "pawn-basics": "Pawn moves",
-      check: "Spotting check",
       hanging: "Hanging pieces",
-      "mate-stalemate": "Mate vs stalemate",
+      cct: "Checks · Captures · Threats",
+      italian: "Italian / Ng5",
+      "fried-liver": "Fried Liver",
+      "white-system": "White system",
+      "italian-white": "Italian as White",
+      clock: "Clock habits",
+      habits: "Pre-move glance",
     };
     return map[tag] || tag;
   }
 
+  function sessionCards() {
+    return cardsForLevel(state.level);
+  }
+
   function currentCard() {
-    const id = SESSION_ORDER[state.cardIndex];
-    return CARDS.find((c) => c.id === id);
+    const list = sessionCards();
+    return list[state.cardIndex] || null;
   }
 
   function masteryPct() {
-    if (SESSION_ORDER.length === 0) return 0;
-    return Math.round((state.cardIndex / SESSION_ORDER.length) * 100);
+    const list = sessionCards();
+    if (!list.length) return 0;
+    return Math.round((state.cardIndex / list.length) * 100);
+  }
+
+  function clearTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  function startSoftTimer(sec) {
+    clearTimer();
+    state.timerTotal = sec;
+    state.timerLeft = sec;
+    state.timerExpired = false;
+    timerInterval = setInterval(() => {
+      state.timerLeft = Math.max(0, state.timerLeft - 0.2);
+      if (state.timerLeft <= 0) {
+        state.timerLeft = 0;
+        state.timerExpired = true;
+        clearTimer();
+      }
+      // Soft refresh of timer UI only when on drill
+      const bar = document.querySelector(".timer-bar > i");
+      const label = document.querySelector(".timer-label");
+      if (bar && state.timerTotal) {
+        const pct = (state.timerLeft / state.timerTotal) * 100;
+        bar.style.width = pct + "%";
+        const wrap = bar.parentElement;
+        if (wrap) wrap.classList.toggle("ok", state.timerLeft > state.timerTotal * 0.35);
+      }
+      if (label) label.textContent = Math.ceil(state.timerLeft) + "s";
+    }, 200);
   }
 
   // ——— Board render ———
@@ -604,7 +934,7 @@
         let pieceHtml = "";
         if (piece) {
           const isWhite = piece === piece.toUpperCase();
-          pieceHtml = `<span class="${isWhite ? "piece-w" : "piece-b"}">${PIECES_SHOW[piece]}</span>`;
+          pieceHtml = `<span class="piece ${isWhite ? "piece-w" : "piece-b"}">${PIECES_SHOW[piece]}</span>`;
         }
         const data = interactive ? ` data-sq="${name}"` : "";
         html += `<div class="${classes.join(" ")}"${data}>${coords}${pieceHtml}</div>`;
@@ -618,18 +948,17 @@
     const hearts = [0, 1, 2].map((i) =>
       `<span class="${i < state.hearts ? "" : "empty"}">${i < state.hearts ? "♥" : "♡"}</span>`
     ).join("");
+    const meta = levelMeta(state.level);
     const pct = Math.max(state.mastery, masteryPct());
     return `
       <div class="chrome">
         <div class="chrome-meta">
-          <div class="chrome-label">Foundation · Rung ${state.rung}</div>
+          <div class="chrome-label">Level ${state.level} · ${meta.name}</div>
           <div class="mastery" aria-hidden="true"><i style="width:${pct}%"></i></div>
         </div>
         <div class="hearts" aria-label="${state.hearts} hearts left">${hearts}</div>
       </div>`;
   }
-
-  // ——— Screens ———
 
   function softToast(msg, desc) {
     const el = document.getElementById("toast");
@@ -685,34 +1014,67 @@
     render();
   }
 
+  function levelDotsHtml() {
+    return LEVELS.map((l) => {
+      let cls = "level-dot";
+      if (l.id < state.maxUnlocked || (l.id <= state.maxUnlocked && l.id < state.level)) cls += " done";
+      else if (l.id === state.level) cls += " current";
+      else if (l.id > state.maxUnlocked) cls += " locked";
+      else cls += " done";
+      const mark = l.id < state.maxUnlocked || (state.maxUnlocked > l.id) ? "✓" : l.id;
+      // Cleared levels: id < maxUnlocked means cleared; current is maxUnlocked if not finished all
+      const cleared = l.id < state.maxUnlocked || (state.maxUnlocked === 4 && false);
+      const show = l.id < state.maxUnlocked ? "✓" : String(l.id);
+      return `<div class="${cls}" title="${l.name}">${show}</div>`;
+    }).join("");
+  }
+
   function renderHome() {
     const struggle = hotStruggle();
+    const meta = levelMeta(state.level);
     const banner = struggle
-      ? `<div class="banner">Last time felt sticky on <strong>${tagLabel(struggle)}</strong> — we’ll ease back in.</div>`
+      ? `<div class="banner">Last time felt sticky on <strong>${tagLabel(struggle)}</strong> — we'll ease back in on this level.</div>`
       : "";
     const updateBanner = ui.updateReady
       ? `<div class="update-banner"><span><strong>Update available</strong></span><button class="cta" data-action="apply-update">Update now</button></div>`
       : "";
     const checkLabel = ui.updateChecking ? "Checking…" : "Check for update";
+    const ctaLabel = state.maxUnlocked > 1 && state.level > 1 ? "Continue level" : "Play level";
+    const allClear = state.maxUnlocked > 4 || (state.maxUnlocked === 4 && false);
+    // maxUnlocked = highest playable; after clearing 4, maxUnlocked stays 4 but we can show all done
+    const clearedAll = loadState().ladderClear === true;
     return `
       <div class="home-hero">
-        <p class="tiny">Chess learning</p>
-        <h1>Clean Coach</h1>
-        <p class="muted small">Calm lessons. Short drills. Honest feedback.</p>
+        <p class="tiny">Game-level ladder</p>
+        <h1>Chess - Teacher</h1>
+        <p class="goal-line">Climb toward 1500 Rapid</p>
+        <p class="muted small" style="margin-top:0.35rem">Built around your real leaks — hangs, Italian as Black, one White system, clock.</p>
       </div>
       ${updateBanner}
       ${banner}
       <div class="card">
         <div class="continue">
           <div>
-            <div class="tiny">Continue</div>
-            <div class="label">Foundation · Rung ${state.rung}</div>
+            <div class="tiny">${clearedAll ? "Ladder" : "Current"}</div>
+            <div class="label">Level ${state.level} of 4 · ${meta.name}</div>
+            <p class="muted small" style="margin-top:0.25rem">${meta.blurb}</p>
           </div>
-          <div class="muted small">~5 min</div>
+          <div class="hearts" aria-hidden="true" style="font-size:1rem">♥♥♥</div>
         </div>
+        <div class="level-dots">${LEVELS.map((l) => {
+          let cls = "level-dot";
+          const cleared = l.id < state.maxUnlocked || (clearedAll && l.id <= 4);
+          if (cleared && l.id !== state.level) cls += " done";
+          else if (l.id === state.level && !clearedAll) cls += " current";
+          else if (l.id > state.maxUnlocked) cls += " locked";
+          else if (clearedAll) cls += " done";
+          else cls += " current";
+          const show = (l.id < state.maxUnlocked || clearedAll) ? "✓" : String(l.id);
+          return `<div class="${cls}" title="${l.name}">${show}</div>`;
+        }).join("")}</div>
       </div>
       <div class="spacer"></div>
-      <button class="cta" data-action="play">Play session</button>
+      <button class="cta" data-action="play">${clearedAll ? "Replay level" : ctaLabel}</button>
       <div class="card update-card" style="margin-top:1rem">
         <p class="tiny">App version</p>
         <p class="small" style="margin-top:0.35rem;font-weight:650">${ui.appVersion || APP_VERSION}</p>
@@ -720,12 +1082,12 @@
         <button class="cta secondary" data-action="check-update"${ui.updateChecking ? " disabled" : ""}>${checkLabel}</button>
         ${ui.updateReady ? `<button class="cta" data-action="apply-update">Update now</button>` : ""}
       </div>
-      <p class="foot-note">Direction preview · Foundation only</p>`;
+      <p class="foot-note">Direction preview · Chess - Teacher ladder</p>`;
   }
 
   function renderTeach(card) {
     const tip = card.tip
-      ? `<div class="tip"><strong>Master tip.</strong> ${card.tip}</div>`
+      ? `<div class="tip"><strong>Coach tip.</strong> ${card.tip}</div>`
       : "";
     return `
       ${chromeHtml()}
@@ -755,16 +1117,21 @@
       const chips = card.options
         .map(
           (o) =>
-            `<button class="chip ${state.selected === o ? "on" : ""}" data-action="pick-mcq" data-value="${o}">${o}</button>`
+            `<button class="chip ${state.selected === o ? "on" : ""}" data-action="pick-mcq" data-value="${o.replace(/"/g, "&quot;")}">${o}</button>`
         )
         .join("");
       body = `
         ${renderBoard(card.board, { highlight: [] })}
         <div class="chips">${chips}</div>
         <button class="cta" data-action="submit-mcq" ${state.selected ? "" : "disabled"}>Submit</button>`;
-    } else if (card.mode === "tap-piece") {
+    } else if (card.mode === "tap-piece" || card.mode === "timed-tap") {
+      const timerHtml = card.mode === "timed-tap"
+        ? `<div class="timer-bar ${state.timerLeft > state.timerTotal * 0.35 ? "ok" : ""}"><i style="width:${state.timerTotal ? (state.timerLeft / state.timerTotal) * 100 : 100}%"></i></div>
+           <p class="timer-label">${Math.ceil(state.timerLeft)}s</p>`
+        : "";
       if (state.hangingStep === 0) {
         body = `
+          ${timerHtml}
           ${renderBoard(card.board, {
             interactive: true,
             picked,
@@ -773,15 +1140,14 @@
           <button class="cta" data-action="submit-tap" ${picked.length ? "" : "disabled"}>That’s the one</button>`;
       } else {
         const after = { ...card.board };
-        // Show capture ready: highlight knight and queen
         body = `
           ${renderBoard(after, {
             highlight: [card.followCapture.from, card.followCapture.to],
             legalHints: [card.followCapture.to],
             interactive: true,
           })}
-          <p class="coach" style="margin-top:0.6rem">Take it with the knight.</p>
-          <button class="cta" data-action="do-capture">Take it · Nxe5</button>`;
+          <p class="coach" style="margin-top:0.6rem">Take it.</p>
+          <button class="cta" data-action="do-capture">Take it</button>`;
       }
     }
     return `
@@ -810,30 +1176,48 @@
       <button class="cta" data-action="next">Next</button>`;
   }
 
+  function renderLevelClear() {
+    const meta = levelMeta(state.level);
+    const nextId = state.level + 1;
+    const next = nextId <= 4 ? levelMeta(nextId) : null;
+    const tease = next
+      ? `<p class="muted" style="margin-top:0.5rem">Unlocked: <strong>Level ${next.id} — ${next.name}</strong></p>`
+      : `<p class="muted" style="margin-top:0.5rem">Ladder clear. Keep the habits warm toward 1500 Rapid.</p>`;
+    return `
+      <div class="card clear" style="margin-top:1.5rem">
+        <p class="tiny">Level clear</p>
+        <div class="stars" aria-hidden="true">★ ★ ★</div>
+        <h1>Level ${meta.id} clear</h1>
+        <p class="coach" style="margin-top:0.35rem">${meta.name}</p>
+        ${tease}
+      </div>
+      <div class="spacer"></div>
+      ${next
+        ? `<button class="cta" data-action="play-next">Play Level ${next.id}</button>
+           <button class="cta ghost" data-action="done">Back home</button>`
+        : `<button class="cta" data-action="done">Done</button>`}`;
+  }
+
   function renderSessionEnd() {
+    // Soft fail / incomplete — stay on level
+    const meta = levelMeta(state.level);
     const due = state.sessionWrong.length
       ? state.sessionWrong.slice(0, 2)
-      : ["knight-moves", "hanging"];
+      : meta.tags.slice(0, 2);
     const uniqueDue = [...new Set(due)].slice(0, 2);
-    const weakest = uniqueDue[0] || "hanging";
     const tags = uniqueDue
-      .map((t) => `<li><span>${tagLabel(t)}</span><span class="muted small">due tomorrow</span></li>`)
+      .map((t) => `<li><span>${tagLabel(t)}</span><span class="muted small">revisit</span></li>`)
       .join("");
     return `
       <p class="tiny">Session</p>
-      <h1>Nice work</h1>
-      <p class="muted">You stayed on Foundation · Rung ${state.rung}.</p>
+      <h1>Keep going</h1>
+      <p class="muted">Still on Level ${state.level} — ${meta.name}.</p>
       <div class="card" style="margin-top:1rem">
-        <p class="tiny">Due tomorrow</p>
+        <p class="tiny">Worth another look</p>
         <ul class="tag-list">${tags}</ul>
       </div>
-      <div class="card">
-        <p class="tiny">Weakest just now</p>
-        <p style="font-weight:600;margin-top:0.35rem">${tagLabel(weakest)}</p>
-        <p class="muted small" style="margin-top:0.35rem">We’ll revisit it gently next time.</p>
-      </div>
       <div class="spacer"></div>
-      <button class="cta" data-action="done">Done</button>`;
+      <button class="cta" data-action="done">Back home</button>`;
   }
 
   function render() {
@@ -843,6 +1227,7 @@
     else if (state.screen === "teach") html = renderTeach(currentCard());
     else if (state.screen === "drill") html = renderDrill(currentCard());
     else if (state.screen === "feedback") html = renderFeedback();
+    else if (state.screen === "clear") html = renderLevelClear();
     else if (state.screen === "end") html = renderSessionEnd();
     root.innerHTML = html;
     bind();
@@ -859,6 +1244,7 @@
   }
 
   function startSession() {
+    clearTimer();
     state.screen = "teach";
     state.hearts = 3;
     state.cardIndex = 0;
@@ -869,14 +1255,16 @@
     state.sessionWrong = [];
     state.sessionDone = false;
     state.hangingStep = 0;
-    state.rungNoteShown = false;
-    saveState({ hearts: 3, rung: state.rung });
+    state.levelNoteShown = false;
+    state.timerExpired = false;
+    saveState({ hearts: 3, level: state.level, maxUnlocked: state.maxUnlocked });
     showCurrentCard();
   }
 
   function showCurrentCard() {
-    if (state.cardIndex >= SESSION_ORDER.length) {
-      endSession();
+    const list = sessionCards();
+    if (state.cardIndex >= list.length) {
+      clearLevel();
       return;
     }
     const card = currentCard();
@@ -887,6 +1275,11 @@
     state.screen = card.type === "teach" ? "teach" : "drill";
     state.mastery = masteryPct();
     render();
+    if (card.mode === "timed-tap" && card.timerSec) {
+      startSoftTimer(card.timerSec);
+    } else {
+      clearTimer();
+    }
   }
 
   function advanceAfterTeach() {
@@ -902,8 +1295,18 @@
   }
 
   function applyResult(ok, card) {
+    clearTimer();
     let lostHeart = false;
     let rungNote = null;
+    // Soft timer expiry: still allow answer, but wrong if expired without correct pick already judged
+    if (card.mode === "timed-tap" && state.timerExpired && ok) {
+      // answered after expiry — count as miss for clock habit
+      ok = false;
+      card = {
+        ...card,
+        explainBad: "Time's soft limit ran out — still tap the hang, but leave clock in real games. " + card.explainBad,
+      };
+    }
     if (!ok) {
       state.hearts = Math.max(0, state.hearts - 1);
       lostHeart = true;
@@ -911,11 +1314,11 @@
       const tags = [card.tag, ...state.struggleTags.filter((t) => t !== card.tag)].slice(0, 4);
       state.struggleTags = tags;
       saveState({ struggleTags: tags, hearts: state.hearts });
-      if (state.hearts === 0 && !state.rungNoteShown) {
-        state.rungNoteShown = true;
+      if (state.hearts === 0 && !state.levelNoteShown) {
+        state.levelNoteShown = true;
         rungNote =
-          "Hearts empty — soft reset. In the full app you’d step back one rung. For this preview we stay on Rung 1 and keep going.";
-        state.hearts = 3; // soft refill so session can finish
+          "Hearts empty — soft retry. Stay on this level, refill hearts, and keep practising. No demotion in this preview.";
+        state.hearts = 3;
         saveState({ hearts: 3 });
       }
     } else {
@@ -928,11 +1331,31 @@
       rungNote,
     };
     state.screen = "feedback";
-    state.mastery = Math.round(((state.cardIndex + 1) / SESSION_ORDER.length) * 100);
+    const list = sessionCards();
+    state.mastery = Math.round(((state.cardIndex + 1) / list.length) * 100);
     render();
   }
 
-  function endSession() {
+  function clearLevel() {
+    clearTimer();
+    const cleared = state.level;
+    const nextUnlock = Math.min(4, cleared + 1);
+    if (nextUnlock > state.maxUnlocked) state.maxUnlocked = nextUnlock;
+    if (cleared === 4) {
+      saveState({ maxUnlocked: 4, level: 4, ladderClear: true, struggleTags: state.struggleTags });
+    } else {
+      state.level = nextUnlock;
+      saveState({ maxUnlocked: state.maxUnlocked, level: state.level, struggleTags: state.struggleTags });
+    }
+    // Restore cleared level id for the clear screen copy
+    state.level = cleared;
+    state.screen = "clear";
+    state.sessionDone = true;
+    render();
+  }
+
+  function endSessionSoft() {
+    clearTimer();
     state.screen = "end";
     state.sessionDone = true;
     const tags = state.sessionWrong.length
@@ -940,7 +1363,7 @@
       : state.struggleTags.slice(0, 2);
     if (tags.length) {
       state.struggleTags = tags;
-      saveState({ struggleTags: tags, rung: state.rung });
+      saveState({ struggleTags: tags, level: state.level, maxUnlocked: state.maxUnlocked });
     }
     render();
   }
@@ -949,6 +1372,14 @@
     const action = e.currentTarget.getAttribute("data-action");
     const card = currentCard();
     if (action === "play") {
+      startSession();
+      return;
+    }
+    if (action === "play-next") {
+      const next = Math.min(4, (loadState().level || state.level));
+      // After clear, persisted level is next unlock
+      const s = loadState();
+      state.level = s.level || Math.min(4, state.level + 1);
       startSession();
       return;
     }
@@ -981,6 +1412,7 @@
       if (ok && card.followCapture) {
         state.hangingStep = 1;
         state.picks = new Set();
+        clearTimer();
         render();
         return;
       }
@@ -988,11 +1420,6 @@
       return;
     }
     if (action === "do-capture") {
-      // Animate capture on board briefly then success
-      const c = { ...card.board };
-      c[card.followCapture.to] = card.followCapture.piece;
-      c[card.followCapture.from] = null;
-      card._capturedBoard = c;
       applyResult(true, card);
       return;
     }
@@ -1002,6 +1429,11 @@
       return;
     }
     if (action === "done") {
+      clearTimer();
+      // Sync level from storage (may have advanced on clear)
+      const s = loadState();
+      if (typeof s.level === "number") state.level = s.level;
+      if (typeof s.maxUnlocked === "number") state.maxUnlocked = s.maxUnlocked;
       state.screen = "home";
       render();
       return;
@@ -1021,21 +1453,20 @@
     if (!card || state.screen !== "drill") return;
 
     if (card.mode === "multi-tap") {
+      // Do not toggle the side-to-move piece square being studied
+      if (card.lockedSquares && card.lockedSquares.includes(name)) return;
       if (state.picks.has(name)) state.picks.delete(name);
       else state.picks.add(name);
       render();
       return;
     }
-    if (card.mode === "tap-piece" && state.hangingStep === 0) {
+    if ((card.mode === "tap-piece" || card.mode === "timed-tap") && state.hangingStep === 0) {
       state.picks = new Set([name]);
       render();
       return;
     }
-    if (card.mode === "tap-piece" && state.hangingStep === 1) {
+    if (card.mode === "tap-piece" && state.hangingStep === 1 && card.followCapture) {
       if (name === card.followCapture.to || name === card.followCapture.from) {
-        const c = { ...card.board };
-        c[card.followCapture.to] = card.followCapture.piece;
-        c[card.followCapture.from] = null;
         applyResult(true, card);
       }
     }
@@ -1056,7 +1487,6 @@
       });
     }
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      // Reload once when a new SW takes control (rescues blank cached shells).
       if (ui.refreshing) return;
       ui.refreshing = true;
       location.reload();

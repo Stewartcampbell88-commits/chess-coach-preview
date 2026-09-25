@@ -1,7 +1,7 @@
 {
-  "name": "Clean Coach",
-  "short_name": "Clean Coach",
-  "description": "Chess learning preview — Foundation rung",
+  "name": "Chess - Teacher",
+  "short_name": "Chess - Teacher",
+  "description": "Game-level ladder toward 1500 Rapid — hangs, Italian, one White system, clock",
   "id": "./",
   "start_url": "./",
   "scope": "./",
