@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="14" fill="#F7F7F5"/>
-  <rect x="8" y="8" width="48" height="48" rx="8" fill="#5B8F6B"/>
-  <text x="32" y="42" text-anchor="middle" font-size="28" fill="#F7F7F5">♞</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#262421"/>
+  <rect x="10" y="10" width="22" height="22" fill="#eeeed2"/>
+  <rect x="32" y="10" width="22" height="22" fill="#769656"/>
+  <rect x="10" y="32" width="22" height="22" fill="#769656"/>
+  <rect x="32" y="32" width="22" height="22" fill="#eeeed2"/>
+  <circle cx="43" cy="21" r="6" fill="#81b64c"/>
 </svg>

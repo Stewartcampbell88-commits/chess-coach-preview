@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#5B8F6B" />
+  <meta name="theme-color" content="#262421" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Chess - Teacher" />
   <title>Chess - Teacher</title>
   <link rel="manifest" href="manifest.json" />
@@ -13,22 +13,26 @@
   <link rel="apple-touch-icon" href="favicon.svg" />
   <style>
     :root {
-      --bg: #F7F7F5;
-      --surface: #FFFFFF;
-      --sage: #5B8F6B;
-      --sage-soft: #E8F1EB;
-      --sage-deep: #3F6B4C;
-      --coral: #D97B6C;
-      --coral-soft: #F8E8E5;
-      --text: #1C1C1A;
-      --muted: #6B6B66;
-      --border: #E6E6E1;
-      --light-sq: #F3EFE4;
-      --dark-sq: #7A9A7E;
-      --hi: #F5E6A8;
-      --hi-ok: #A8D5B5;
-      --hi-bad: #F0B8B0;
-      --radius: 18px;
+      --bg: #262421;
+      --bg-deep: #1a1917;
+      --surface: #302e2c;
+      --surface-2: #3a3733;
+      --green: #81b64c;
+      --green-bright: #95c75c;
+      --green-deep: #5d8a35;
+      --green-soft: rgb(129 182 76 / 0.18);
+      --coral: #e57373;
+      --coral-soft: rgb(229 115 115 / 0.16);
+      --text: #ffffff;
+      --muted: #a3a3a0;
+      --border: #3d3b38;
+      --light-sq: #eeeed2;
+      --dark-sq: #769656;
+      --hi: #f5f682;
+      --hi-ok: #baca44;
+      --hi-bad: #e57373;
+      --lock: #6b6965;
+      --radius: 10px;
       --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
     * { box-sizing: border-box; }
@@ -70,14 +74,14 @@
     .chrome-meta { min-width: 0; }
     .chrome-label {
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--muted);
       letter-spacing: 0.02em;
     }
     .mastery {
       margin-top: 0.4rem;
       height: 4px;
-      background: var(--border);
+      background: var(--surface-2);
       border-radius: 99px;
       overflow: hidden;
       width: 9rem;
@@ -86,7 +90,7 @@
     .mastery > i {
       display: block;
       height: 100%;
-      background: var(--sage);
+      background: var(--green);
       border-radius: 99px;
       width: 0%;
       transition: width 0.35s ease;
@@ -99,68 +103,102 @@
       letter-spacing: 0.05em;
       color: var(--coral);
     }
-    .hearts .empty { color: #D0D0CB; }
+    .hearts .empty { color: #4a4844; }
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       padding: 1.1rem 1.15rem;
-      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(28 28 26 / 0.04);
+      border: 1px solid var(--border);
       margin-bottom: 0.75rem;
     }
-    .card.warn { background: var(--coral-soft); box-shadow: none; }
-    .card.ok { background: var(--sage-soft); box-shadow: none; }
+    .card.warn { background: var(--coral-soft); border-color: rgb(229 115 115 / 0.35); }
+    .card.ok { background: var(--green-soft); border-color: rgb(129 182 76 / 0.4); }
     .card.clear {
-      background: linear-gradient(160deg, var(--sage-soft), #fff 70%);
-      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(91 143 107 / 0.12);
+      background: var(--surface);
+      border: 1px solid rgb(129 182 76 / 0.45);
+      text-align: center;
+      padding: 1.75rem 1.25rem;
+    }
+    .clear-check {
+      width: 4rem;
+      height: 4rem;
+      margin: 0 auto 0.75rem;
+      border-radius: 50%;
+      background: var(--green);
+      color: #1a1917;
+      font-size: 2rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
     h1 {
-      font-size: 1.65rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
       margin: 0 0 0.25rem;
+      color: var(--text);
     }
     h2 {
-      font-size: 1.15rem;
-      font-weight: 650;
+      font-size: 1.1rem;
+      font-weight: 750;
       margin: 0 0 0.5rem;
       line-height: 1.3;
+      letter-spacing: -0.02em;
     }
     p { margin: 0; line-height: 1.45; }
     .muted { color: var(--muted); }
     .small { font-size: 0.875rem; }
-    .tiny { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .tiny {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
     .banner {
       background: var(--coral-soft);
       color: var(--text);
-      border-radius: 14px;
+      border-radius: var(--radius);
       padding: 0.7rem 0.9rem;
       font-size: 0.9rem;
       margin: 0.85rem 0 1rem;
       line-height: 1.4;
+      border: 1px solid rgb(229 115 115 / 0.3);
     }
     .spacer { flex: 1; min-height: 1rem; }
     .cta {
       width: 100%;
-      min-height: 3.15rem;
-      border-radius: 14px;
-      background: var(--sage);
-      color: #fff;
-      font-weight: 650;
-      font-size: 1.05rem;
+      min-height: 3rem;
+      border-radius: var(--radius);
+      background: var(--green);
+      color: #1a1917;
+      font-weight: 750;
+      font-size: 1.02rem;
       padding: 0.85rem 1rem;
       margin-top: 0.5rem;
     }
+    .cta:not(:disabled):hover { background: var(--green-bright); }
     .cta.secondary {
-      background: transparent;
-      color: var(--sage);
-      box-shadow: inset 0 0 0 1.5px var(--sage);
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1.5px var(--border);
     }
+    .cta.secondary:not(:disabled):hover { background: var(--surface-2); }
     .cta.ghost {
       background: transparent;
       color: var(--muted);
-      font-weight: 550;
+      font-weight: 600;
       min-height: 2.5rem;
       margin-top: 0.25rem;
+    }
+    .cta.play-node {
+      width: auto;
+      min-height: 2.25rem;
+      padding: 0.45rem 1rem;
+      margin: 0;
+      font-size: 0.9rem;
     }
     .chips {
       display: flex;
@@ -170,40 +208,40 @@
     }
     .chip {
       min-height: 2.75rem;
-      border-radius: 999px;
+      border-radius: 8px;
       padding: 0.55rem 1rem;
-      background: var(--bg);
+      background: var(--surface-2);
       box-shadow: inset 0 0 0 1px var(--border);
-      font-weight: 550;
+      font-weight: 600;
       font-size: 0.95rem;
       color: var(--text);
     }
     .chip.on {
-      background: var(--sage-soft);
-      box-shadow: inset 0 0 0 1.5px var(--sage);
-      color: var(--sage);
+      background: var(--green-soft);
+      box-shadow: inset 0 0 0 1.5px var(--green);
+      color: var(--green-bright);
     }
     .chip.correct-flash {
-      background: var(--sage-soft);
-      box-shadow: inset 0 0 0 1.5px var(--sage);
+      background: var(--green-soft);
+      box-shadow: inset 0 0 0 1.5px var(--green);
     }
     .chip.wrong-flash {
       background: var(--coral-soft);
       box-shadow: inset 0 0 0 1.5px var(--coral);
     }
 
-    /* ——— Board crispness ——— */
+    /* ——— Board ——— */
     .board-wrap {
       margin: 0.85rem 0 0.35rem;
       width: 100%;
       aspect-ratio: 1;
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
-      background: var(--sage-deep);
+      background: #1a1917;
       box-shadow:
-        0 0 0 2px var(--sage),
-        0 0 0 5px var(--sage-soft),
-        0 10px 28px rgb(28 28 26 / 0.1);
+        0 0 0 2px #1a1917,
+        0 0 0 4px #4a4844,
+        0 10px 28px rgb(0 0 0 / 0.35);
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
@@ -215,7 +253,7 @@
       grid-template-rows: repeat(8, minmax(0, 1fr));
       width: 100%;
       height: 100%;
-      border-radius: 9px;
+      border-radius: 5px;
       overflow: hidden;
       container-type: size;
     }
@@ -229,38 +267,40 @@
       overflow: hidden;
       line-height: 1;
       cursor: pointer;
-      font-size: 0; /* size lives on the piece span */
+      font-size: 0;
     }
     .sq.light { background: var(--light-sq); }
     .sq.dark { background: var(--dark-sq); }
-    .sq.hi { box-shadow: inset 0 0 0 3px #E0B830; background: var(--hi); }
-    .sq.picked { box-shadow: inset 0 0 0 3px var(--sage-deep); background: var(--hi-ok); }
-    .sq.legal { box-shadow: inset 0 0 0 3px var(--sage); }
+    .sq.hi { box-shadow: inset 0 0 0 0; background: var(--hi); }
+    .sq.dark.hi { background: #baca44; }
+    .sq.picked { box-shadow: inset 0 0 0 3.5px var(--green); background: var(--hi-ok); }
+    .sq.dark.picked { background: #a3b83a; }
+    .sq.legal { box-shadow: inset 0 0 0 3px var(--green-deep); }
     .sq.legal::after {
       content: "";
       position: absolute;
       width: 26%;
       height: 26%;
       border-radius: 50%;
-      background: rgb(63 107 76 / 0.55);
+      background: rgb(93 138 53 / 0.65);
       pointer-events: none;
     }
     .sq.legal.has-piece::after {
       width: auto; height: auto; inset: 10%;
-      border: 2.5px solid rgb(63 107 76 / 0.75);
+      border: 2.5px solid rgb(93 138 53 / 0.85);
       background: transparent;
       border-radius: 50%;
     }
     .sq .coord {
       position: absolute;
       font-size: 0.5rem;
-      font-weight: 650;
-      color: rgb(28 28 26 / 0.38);
+      font-weight: 700;
+      color: rgb(118 150 86 / 0.85);
       pointer-events: none;
       line-height: 1;
       z-index: 1;
     }
-    .sq.dark .coord { color: rgb(243 239 228 / 0.55); }
+    .sq.dark .coord { color: rgb(238 238 210 / 0.75); }
     .sq .coord.file { bottom: 1px; right: 2px; }
     .sq .coord.rank { top: 1px; left: 2px; }
     .sq .piece {
@@ -273,21 +313,21 @@
     }
     .piece-w {
       color: #FFFEF8;
-      -webkit-text-stroke: 0.5px #1a1a1a;
+      -webkit-text-stroke: 0.55px #1a1a1a;
       paint-order: stroke fill;
       text-shadow:
         0 0 0.5px #111,
         0 1px 0 #2a2a2a,
-        0 1.5px 2px rgb(0 0 0 / 0.35);
+        0 1.5px 2px rgb(0 0 0 / 0.4);
     }
     .piece-b {
-      color: #141412;
-      -webkit-text-stroke: 0.35px #0a0a0a;
+      color: #1a1a18;
+      -webkit-text-stroke: 0.4px #0a0a0a;
       paint-order: stroke fill;
       text-shadow:
         0 0 0.5px #000,
-        0 1px 0 rgb(255 255 255 / 0.25),
-        0 1.5px 2px rgb(0 0 0 / 0.2);
+        0 1px 0 rgb(255 255 255 / 0.2),
+        0 1.5px 2px rgb(0 0 0 / 0.25);
     }
 
     .coach {
@@ -298,63 +338,174 @@
     .tip {
       margin-top: 0.75rem;
       padding: 0.7rem 0.85rem;
-      background: var(--sage-soft);
-      border-radius: 12px;
+      background: var(--green-soft);
+      border-radius: 8px;
       font-size: 0.9rem;
       color: var(--text);
       line-height: 1.4;
+      border: 1px solid rgb(129 182 76 / 0.25);
     }
-    .tip strong { color: var(--sage); font-weight: 650; }
+    .tip strong { color: var(--green-bright); font-weight: 700; }
     .progress-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 0.35rem;
     }
-    .home-hero { padding-top: 1.25rem; }
+    .home-hero { padding-top: 0.85rem; padding-bottom: 0.35rem; }
     .goal-line {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--sage-deep);
-      margin: 0.35rem 0 0;
+      font-size: 0.95rem;
+      font-weight: 650;
+      color: var(--green-bright);
+      margin: 0.3rem 0 0;
     }
-    .continue {
+    .overall-bar {
+      margin: 0.85rem 0 0.35rem;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .overall-bar > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-deep), var(--green));
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .overall-meta {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
-      margin-top: 0.15rem;
-    }
-    .continue .label { font-weight: 600; }
-    .level-dots {
-      display: flex;
-      gap: 0.35rem;
-      margin-top: 0.85rem;
-      flex-wrap: wrap;
-    }
-    .level-dot {
-      flex: 1;
-      min-width: 3.5rem;
-      text-align: center;
-      padding: 0.45rem 0.35rem;
-      border-radius: 10px;
-      background: var(--bg);
-      box-shadow: inset 0 0 0 1px var(--border);
-      font-size: 0.7rem;
+      align-items: baseline;
+      margin-top: 0.35rem;
+      font-size: 0.8rem;
       font-weight: 650;
       color: var(--muted);
     }
-    .level-dot.done {
-      background: var(--sage-soft);
-      box-shadow: inset 0 0 0 1.5px var(--sage);
-      color: var(--sage-deep);
+
+    /* ——— Lessons-style path ——— */
+    .path {
+      position: relative;
+      margin: 0.5rem 0 0.25rem;
+      padding: 0.25rem 0 0.5rem;
     }
-    .level-dot.current {
-      background: var(--sage);
-      box-shadow: none;
-      color: #fff;
+    .path-spine {
+      position: absolute;
+      left: 1.55rem;
+      top: 2rem;
+      bottom: 2rem;
+      width: 4px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      z-index: 0;
     }
-    .level-dot.locked { opacity: 0.55; }
+    .path-spine > i {
+      display: block;
+      width: 100%;
+      background: var(--green);
+      border-radius: 99px;
+      height: 0%;
+      transition: height 0.4s ease;
+    }
+    .path-node {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 3.25rem 1fr;
+      gap: 0.85rem;
+      align-items: center;
+      margin-bottom: 1.15rem;
+    }
+    .path-node:last-child { margin-bottom: 0; }
+    .node-circle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .node-circle {
+      width: 3.1rem;
+      height: 3.1rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.15rem;
+      background: var(--surface-2);
+      color: var(--lock);
+      border: 3px solid #4a4844;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+    }
+    .path-node.done .node-circle {
+      background: var(--green);
+      color: #1a1917;
+      border-color: var(--green-bright);
+    }
+    .path-node.current .node-circle {
+      background: var(--surface);
+      color: var(--green-bright);
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgb(129 182 76 / 0.25), 0 4px 14px rgb(0 0 0 / 0.3);
+    }
+    .path-node.locked .node-circle {
+      background: #2a2826;
+      color: var(--lock);
+      border-color: #3d3b38;
+    }
+    .node-stars {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: #f0c040;
+      line-height: 1;
+      min-height: 0.7rem;
+    }
+    .node-stars .empty-star { color: #4a4844; }
+    .node-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 0.85rem;
+      min-width: 0;
+    }
+    .path-node.current .node-body {
+      border-color: rgb(129 182 76 / 0.55);
+      background: #35332f;
+    }
+    .path-node.locked .node-body {
+      opacity: 0.55;
+    }
+    .path-node.done .node-body {
+      border-color: rgb(129 182 76 / 0.3);
+    }
+    .node-title {
+      font-weight: 750;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .node-blurb {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin: 0.2rem 0 0;
+      line-height: 1.35;
+    }
+    .node-actions {
+      margin-top: 0.55rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .lock-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--lock);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
     .tag-list { margin: 0.75rem 0 0; padding: 0; list-style: none; }
     .tag-list li {
       display: flex;
@@ -368,11 +519,12 @@
     .note-soft {
       margin: 0.75rem 0;
       padding: 0.75rem 0.9rem;
-      border-radius: 14px;
-      background: #F0EFEA;
+      border-radius: var(--radius);
+      background: var(--surface-2);
       color: var(--muted);
       font-size: 0.9rem;
       line-height: 1.4;
+      border: 1px solid var(--border);
     }
     .hide { display: none !important; }
     .foot-note {
@@ -382,15 +534,16 @@
       margin-top: 1.25rem;
     }
     .stars {
-      font-size: 1.35rem;
-      letter-spacing: 0.15em;
-      color: var(--sage);
-      margin: 0.5rem 0 0.25rem;
+      font-size: 1.5rem;
+      letter-spacing: 0.2em;
+      color: #f0c040;
+      margin: 0.65rem 0 0.35rem;
     }
+    .stars .empty-star { color: #4a4844; }
     .timer-bar {
       margin: 0.65rem 0 0.25rem;
       height: 5px;
-      background: var(--border);
+      background: var(--surface-2);
       border-radius: 99px;
       overflow: hidden;
     }
@@ -402,10 +555,10 @@
       width: 100%;
       transition: width 0.2s linear;
     }
-    .timer-bar.ok > i { background: var(--sage); }
+    .timer-bar.ok > i { background: var(--green); }
     .timer-label {
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 650;
       color: var(--muted);
       text-align: right;
     }
@@ -415,15 +568,16 @@
       justify-content: space-between;
       gap: 0.75rem;
       flex-wrap: wrap;
-      background: var(--sage-soft);
+      background: var(--green-soft);
       color: var(--text);
-      border-radius: 14px;
+      border-radius: var(--radius);
       padding: 0.75rem 0.9rem;
       font-size: 0.9rem;
       margin: 0.85rem 0 0.75rem;
       line-height: 1.4;
+      border: 1px solid rgb(129 182 76 / 0.35);
     }
-    .update-banner strong { font-weight: 650; }
+    .update-banner strong { font-weight: 700; }
     .update-banner .cta {
       width: auto;
       min-height: 2.5rem;
@@ -443,9 +597,10 @@
       transform: translateX(-50%);
       background: var(--surface);
       color: var(--text);
-      border-radius: 14px;
+      border-radius: var(--radius);
       padding: 0.75rem 1rem;
-      box-shadow: 0 1px 0 var(--border), 0 8px 24px rgb(28 28 26 / 0.12);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
       z-index: 40;
       max-width: min(20rem, calc(100vw - 2rem));
       font-size: 0.875rem;
@@ -459,15 +614,16 @@
   <div id="toast" class="toast hide" role="status" aria-live="polite"></div>
   <script>
 (function () {
-  const APP_VERSION = "chess-coach-v4";
+  const APP_VERSION = "chess-coach-v5";
   const FILES = "abcdefgh";
   const PIECES_SHOW = {
     K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
     k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟",
   };
 
-  // Schema bump so old Foundation state doesn't blank the ladder.
-  const STORAGE_KEY = "chess-teacher-v4";
+  // Schema bump — fresh progress OK; migrate from v4 if present.
+  const STORAGE_KEY = "chess-teacher-v5";
+  const PREV_STORAGE_KEY = "chess-teacher-v4";
 
   function emptyBoard() {
     const b = {};
@@ -785,9 +941,25 @@
     return LEVELS.find((l) => l.id === id) || LEVELS[0];
   }
 
+  function defaultStars() {
+    return { 1: 0, 2: 0, 3: 0, 4: 0 };
+  }
+
   function loadState() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const prev = localStorage.getItem(PREV_STORAGE_KEY);
+        if (prev) {
+          try {
+            const migrated = JSON.parse(prev) || {};
+            if (!migrated.levelStars) migrated.levelStars = defaultStars();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+            raw = localStorage.getItem(STORAGE_KEY);
+          } catch {}
+        }
+      }
+      return JSON.parse(raw || "{}") || {};
     } catch {
       return {};
     }
@@ -816,6 +988,8 @@
     timerLeft: 0,
     timerTotal: 0,
     timerExpired: false,
+    levelStars: defaultStars(),
+    lastClearStars: 0,
   };
 
   let timerInterval = null;
@@ -835,6 +1009,21 @@
     if (typeof s.maxUnlocked === "number" && s.maxUnlocked >= 1) state.maxUnlocked = Math.min(4, s.maxUnlocked);
     if (state.level > state.maxUnlocked) state.level = state.maxUnlocked;
     if (Array.isArray(s.struggleTags)) state.struggleTags = s.struggleTags;
+    state.levelStars = { ...defaultStars(), ...(s.levelStars || {}) };
+  }
+
+  function starsHtml(n, max = 3) {
+    let out = "";
+    for (let i = 1; i <= max; i++) {
+      out += i <= n ? "★" : '<span class="empty-star">★</span>';
+    }
+    return out;
+  }
+
+  function clearedCount() {
+    const clearedAll = loadState().ladderClear === true;
+    if (clearedAll) return 4;
+    return Math.max(0, state.maxUnlocked - 1);
   }
 
   function hotStruggle() {
@@ -1014,24 +1203,63 @@
     render();
   }
 
-  function levelDotsHtml() {
-    return LEVELS.map((l) => {
-      let cls = "level-dot";
-      if (l.id < state.maxUnlocked || (l.id <= state.maxUnlocked && l.id < state.level)) cls += " done";
-      else if (l.id === state.level) cls += " current";
-      else if (l.id > state.maxUnlocked) cls += " locked";
-      else cls += " done";
-      const mark = l.id < state.maxUnlocked || (state.maxUnlocked > l.id) ? "✓" : l.id;
-      // Cleared levels: id < maxUnlocked means cleared; current is maxUnlocked if not finished all
-      const cleared = l.id < state.maxUnlocked || (state.maxUnlocked === 4 && false);
-      const show = l.id < state.maxUnlocked ? "✓" : String(l.id);
-      return `<div class="${cls}" title="${l.name}">${show}</div>`;
+  function renderPath() {
+    const clearedAll = loadState().ladderClear === true;
+    const cleared = clearedCount();
+    // Spine fill: how far along the 4 nodes
+    const spinePct = clearedAll ? 100 : Math.max(0, ((cleared) / 3) * 100);
+    const nodes = LEVELS.map((l) => {
+      const isLocked = l.id > state.maxUnlocked;
+      const isDone = l.id < state.maxUnlocked || (clearedAll && l.id <= 4);
+      const isCurrent = !isLocked && !isDone && l.id === state.maxUnlocked;
+      // Also treat selected/current playable as current highlight when equal to maxUnlocked
+      let cls = "path-node";
+      if (isLocked) cls += " locked";
+      else if (isDone) cls += " done";
+      else cls += " current";
+
+      const best = state.levelStars[l.id] || 0;
+      const circleInner = isLocked
+        ? "🔒"
+        : isDone
+          ? "✓"
+          : String(l.id);
+      const starsRow = (!isLocked && (isDone || best > 0))
+        ? `<div class="node-stars" aria-label="${best} stars">${starsHtml(best)}</div>`
+        : `<div class="node-stars" aria-hidden="true"></div>`;
+
+      let actions = "";
+      if (isLocked) {
+        actions = `<div class="lock-badge"><span>🔒</span> Locked</div>`;
+      } else if (isDone) {
+        actions = `<button class="cta play-node secondary" data-action="play-level" data-level="${l.id}">Replay</button>`;
+      } else {
+        actions = `<button class="cta play-node" data-action="play-level" data-level="${l.id}">Play</button>`;
+      }
+
+      return `
+        <div class="${cls}">
+          <div class="node-circle-wrap">
+            <div class="node-circle" aria-hidden="true">${circleInner}</div>
+            ${starsRow}
+          </div>
+          <div class="node-body">
+            <p class="node-title">Level ${l.id} · ${l.name}</p>
+            <p class="node-blurb">${l.blurb}</p>
+            <div class="node-actions">${actions}</div>
+          </div>
+        </div>`;
     }).join("");
+
+    return `
+      <div class="path">
+        <div class="path-spine" aria-hidden="true"><i style="height:${spinePct}%"></i></div>
+        ${nodes}
+      </div>`;
   }
 
   function renderHome() {
     const struggle = hotStruggle();
-    const meta = levelMeta(state.level);
     const banner = struggle
       ? `<div class="banner">Last time felt sticky on <strong>${tagLabel(struggle)}</strong> — we'll ease back in on this level.</div>`
       : "";
@@ -1039,50 +1267,31 @@
       ? `<div class="update-banner"><span><strong>Update available</strong></span><button class="cta" data-action="apply-update">Update now</button></div>`
       : "";
     const checkLabel = ui.updateChecking ? "Checking…" : "Check for update";
-    const ctaLabel = state.maxUnlocked > 1 && state.level > 1 ? "Continue level" : "Play level";
-    const allClear = state.maxUnlocked > 4 || (state.maxUnlocked === 4 && false);
-    // maxUnlocked = highest playable; after clearing 4, maxUnlocked stays 4 but we can show all done
-    const clearedAll = loadState().ladderClear === true;
+    const cleared = clearedCount();
+    const barPct = (cleared / 4) * 100;
     return `
       <div class="home-hero">
-        <p class="tiny">Game-level ladder</p>
+        <p class="tiny">Lessons path</p>
         <h1>Chess - Teacher</h1>
         <p class="goal-line">Climb toward 1500 Rapid</p>
-        <p class="muted small" style="margin-top:0.35rem">Built around your real leaks — hangs, Italian as Black, one White system, clock.</p>
+        <div class="overall-bar" aria-hidden="true"><i style="width:${barPct}%"></i></div>
+        <div class="overall-meta">
+          <span>${cleared} / 4 cleared</span>
+          <span>${ui.appVersion || APP_VERSION}</span>
+        </div>
       </div>
       ${updateBanner}
       ${banner}
-      <div class="card">
-        <div class="continue">
-          <div>
-            <div class="tiny">${clearedAll ? "Ladder" : "Current"}</div>
-            <div class="label">Level ${state.level} of 4 · ${meta.name}</div>
-            <p class="muted small" style="margin-top:0.25rem">${meta.blurb}</p>
-          </div>
-          <div class="hearts" aria-hidden="true" style="font-size:1rem">♥♥♥</div>
-        </div>
-        <div class="level-dots">${LEVELS.map((l) => {
-          let cls = "level-dot";
-          const cleared = l.id < state.maxUnlocked || (clearedAll && l.id <= 4);
-          if (cleared && l.id !== state.level) cls += " done";
-          else if (l.id === state.level && !clearedAll) cls += " current";
-          else if (l.id > state.maxUnlocked) cls += " locked";
-          else if (clearedAll) cls += " done";
-          else cls += " current";
-          const show = (l.id < state.maxUnlocked || clearedAll) ? "✓" : String(l.id);
-          return `<div class="${cls}" title="${l.name}">${show}</div>`;
-        }).join("")}</div>
-      </div>
+      ${renderPath()}
       <div class="spacer"></div>
-      <button class="cta" data-action="play">${clearedAll ? "Replay level" : ctaLabel}</button>
-      <div class="card update-card" style="margin-top:1rem">
+      <div class="card update-card">
         <p class="tiny">App version</p>
-        <p class="small" style="margin-top:0.35rem;font-weight:650">${ui.appVersion || APP_VERSION}</p>
+        <p class="small" style="margin-top:0.35rem;font-weight:700">${ui.appVersion || APP_VERSION}</p>
         <p class="muted small" style="margin-top:0.35rem">Checks GitHub Pages for a new build when you open or focus the app.</p>
         <button class="cta secondary" data-action="check-update"${ui.updateChecking ? " disabled" : ""}>${checkLabel}</button>
         ${ui.updateReady ? `<button class="cta" data-action="apply-update">Update now</button>` : ""}
       </div>
-      <p class="foot-note">Direction preview · Chess - Teacher ladder</p>`;
+      <p class="foot-note">Direction preview · Chess - Teacher</p>`;
   }
 
   function renderTeach(card) {
@@ -1180,20 +1389,23 @@
     const meta = levelMeta(state.level);
     const nextId = state.level + 1;
     const next = nextId <= 4 ? levelMeta(nextId) : null;
+    const earned = state.lastClearStars || 0;
     const tease = next
-      ? `<p class="muted" style="margin-top:0.5rem">Unlocked: <strong>Level ${next.id} — ${next.name}</strong></p>`
-      : `<p class="muted" style="margin-top:0.5rem">Ladder clear. Keep the habits warm toward 1500 Rapid.</p>`;
+      ? `<p class="muted" style="margin-top:0.65rem">Unlocked: <strong>Level ${next.id} — ${next.name}</strong></p>`
+      : `<p class="muted" style="margin-top:0.65rem">Path clear. Keep the habits warm toward 1500 Rapid.</p>`;
     return `
       <div class="card clear" style="margin-top:1.5rem">
+        <div class="clear-check" aria-hidden="true">✓</div>
         <p class="tiny">Level clear</p>
-        <div class="stars" aria-hidden="true">★ ★ ★</div>
+        <div class="stars" aria-label="${earned} stars">${starsHtml(earned)}</div>
         <h1>Level ${meta.id} clear</h1>
         <p class="coach" style="margin-top:0.35rem">${meta.name}</p>
+        <p class="muted small" style="margin-top:0.35rem">${earned} star${earned === 1 ? "" : "s"} this run</p>
         ${tease}
       </div>
       <div class="spacer"></div>
       ${next
-        ? `<button class="cta" data-action="play-next">Play Level ${next.id}</button>
+        ? `<button class="cta" data-action="play-next">Next level</button>
            <button class="cta ghost" data-action="done">Back home</button>`
         : `<button class="cta" data-action="done">Done</button>`}`;
   }
@@ -1339,13 +1551,28 @@
   function clearLevel() {
     clearTimer();
     const cleared = state.level;
+    // Stars from hearts left at clear: 3→3★, 2→2★, 1→1★ (0 shouldn't reach clear)
+    const earned = Math.max(1, Math.min(3, state.hearts || 1));
+    state.lastClearStars = earned;
+    const prevBest = state.levelStars[cleared] || 0;
+    if (earned > prevBest) {
+      state.levelStars = { ...state.levelStars, [cleared]: earned };
+    }
     const nextUnlock = Math.min(4, cleared + 1);
     if (nextUnlock > state.maxUnlocked) state.maxUnlocked = nextUnlock;
+    const persist = {
+      maxUnlocked: state.maxUnlocked,
+      struggleTags: state.struggleTags,
+      levelStars: state.levelStars,
+    };
     if (cleared === 4) {
-      saveState({ maxUnlocked: 4, level: 4, ladderClear: true, struggleTags: state.struggleTags });
+      persist.level = 4;
+      persist.ladderClear = true;
+      saveState(persist);
     } else {
       state.level = nextUnlock;
-      saveState({ maxUnlocked: state.maxUnlocked, level: state.level, struggleTags: state.struggleTags });
+      persist.level = state.level;
+      saveState(persist);
     }
     // Restore cleared level id for the clear screen copy
     state.level = cleared;
@@ -1372,6 +1599,15 @@
     const action = e.currentTarget.getAttribute("data-action");
     const card = currentCard();
     if (action === "play") {
+      startSession();
+      return;
+    }
+    if (action === "play-level") {
+      const lvl = parseInt(e.currentTarget.getAttribute("data-level"), 10);
+      if (!lvl || lvl < 1 || lvl > 4) return;
+      if (lvl > state.maxUnlocked) return;
+      state.level = lvl;
+      saveState({ level: state.level, maxUnlocked: state.maxUnlocked });
       startSession();
       return;
     }

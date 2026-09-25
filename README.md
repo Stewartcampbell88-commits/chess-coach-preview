@@ -4,7 +4,7 @@ Game-level ladder for Stewart Campbell (`stewartcamp`) aimed at climbing Chess.c
 
 **Live:** https://stewartcampbell88-commits.github.io/chess-coach-preview/
 
-This is a **direction test** — not the full app. No accounts, no APK. Calm sage/coral UI; game-level feel via levels, clears, and hearts — not loud arcade chrome.
+This is a **direction test** — not the full app. No accounts, no APK. **v5** uses a dark Chess.com-inspired chrome (not logos/wordmarks) and a **Lessons-style vertical path** on Home — numbered nodes, stars, locks — instead of the calm sage Clean Coach home.
 
 ## Levels (unlock in order)
 
@@ -13,19 +13,23 @@ This is a **direction test** — not the full app. No accounts, no APK. Calm sag
 3. **One White System** — **Italian-ish**: `1.e4 2.Nf3 3.Bc4`, castle short, stay consistent (same shapes you face as Black)
 4. **Clock Habits** — leave time; resign vs abandon; soft timed hang-glance (~18s)
 
-Clearing a level session unlocks the next. Empty hearts = soft retry on the same level (preview).
+Clearing a level session unlocks the next. Stars (1–3) track how clean the clear was from hearts left. Empty hearts = soft retry on the same level (preview).
 
 ## White system choice
 
 Documented choice for Level 3: **Italian-ish** (`e4 + Nf3 + Bc4`), not London. Rationale: Stewart's Black leaks are Italian / Fried Liver (C57); owning the same structure as White reinforces patterns both colours.
 
+## Visual (v5)
+
+Dark app chrome (`#262421` / `#302e2c`), primary CTA green (`#81b64c`), classic green board (`#eeeed2` / `#769656`). Home is a vertical mini-game / lessons path with locks and star ratings — not a light card list.
+
 ## Board
 
-Square board via `aspect-ratio` + CSS grid `minmax(0,1fr)`. Piece size uses `cqmin` on a size container so Unicode pieces no longer stretch row height into rectangles. Stronger cream/sage contrast and piece stroke/shadow.
+Square board via `aspect-ratio` + CSS grid `minmax(0,1fr)`. Piece size uses `cqmin` on a size container so Unicode pieces no longer stretch row height into rectangles. Last-move style yellow/green highlights; selected square green outline.
 
 ## Updates (service worker)
 
-Cache / app version: `chess-coach-v4` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep).
+Cache / app version: `chess-coach-v5` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep). Storage key: `chess-teacher-v5` (migrates from v4 when present).
 
 When shipping a change, bump both to `chess-coach-vN`. The phone PWA checks GitHub Pages on open/focus (and hourly) via `reg.update()`. If a new service worker is waiting, Home shows **Update available** → **Update now**. You can also tap **Check for update** on Home.
 
