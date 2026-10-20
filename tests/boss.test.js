@@ -1,0 +1,22 @@
+import test from "node:test"; import assert from "node:assert/strict";
+import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
+import { buildBoss, gradeBoss } from "../js/logic/boss.js"; import { makeRng } from "../js/logic/rng.js";
+const w1 = WORLDS[0], byId = new Map(PUZZLES.map(p => [p.id, p]));
+const bossIds = (t) => PUZZLES.filter(p => p.boss === "w1-boss" && p.tag === t).map(p => p.id);
+test("5 unique boss-only ids covering all 4 tags", () => { const ids = buildBoss(w1, PUZZLES, [], makeRng(1));
+  assert.equal(new Set(ids).size, 5); assert.ok(ids.every(id => byId.get(id).boss === "w1-boss"));
+  assert.deepEqual(new Set(ids.map(id => byId.get(id).tag)), new Set(["spot","free","count","save"])); });
+test("retry shows fresh positions", () => { const a = buildBoss(w1, PUZZLES, [], makeRng(1)), b = buildBoss(w1, PUZZLES, a, makeRng(2));
+  assert.equal(b.filter(id => a.includes(id)).length, 0); });
+test("deterministic per seed", () => assert.deepEqual(buildBoss(w1, PUZZLES, [], makeRng(7)), buildBoss(w1, PUZZLES, [], makeRng(7))));
+test("tiny pool throws", () => assert.throws(() => buildBoss(w1, PUZZLES.filter(p => p.boss).slice(0, 4), [], makeRng(1)), /too small/));
+test("4/5 passes", () => { const r = ["spot","free","count","save","spot"].map((t, i) => ({ id: bossIds(t)[i % 3], correct: i !== 2 }));
+  assert.deepEqual(gradeBoss(r, byId, w1), { score: 4, passed: true, weakLevelId: null, weakTags: [] }); });
+test("3/5 routes to most-missed level", () => { const c = bossIds("count");
+  const r = [{ id: c[0], correct: false }, { id: c[1], correct: false }, { id: bossIds("spot")[0], correct: true }, { id: bossIds("free")[0], correct: true }, { id: bossIds("save")[0], correct: true }];
+  const g = gradeBoss(r, byId, w1); assert.equal(g.passed, false); assert.equal(g.weakLevelId, "w1-l3"); assert.deepEqual(g.weakTags, ["count"]); });
+test("tie goes to earlier level", () => { const r = [{ id: bossIds("save")[0], correct: false }, { id: bossIds("spot")[0], correct: false },
+  { id: bossIds("free")[0], correct: true }, { id: bossIds("count")[0], correct: true }, { id: bossIds("free")[1], correct: true }];
+  assert.equal(gradeBoss(r, byId, w1).weakLevelId, "w1-l1"); });
+test("many retries never repeat back-to-back", () => { let last = [];
+  for (let s = 1; s <= 20; s++) { const ids = buildBoss(w1, PUZZLES, last, makeRng(s)); assert.equal(ids.filter(i => last.includes(i)).length, 0); last = ids; } });
