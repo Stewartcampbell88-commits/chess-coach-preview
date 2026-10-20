@@ -1,0 +1,43 @@
+{
+ "8/4k3/8/3K4/4P3/8/8/8 w - - 0 1": {
+  "category": "win",
+  "moves": [
+   {
+    "uci": "d5e5",
+    "category": "loss",
+    "dtm": -28,
+    "dtz": -4
+   },
+   {
+    "uci": "e4e5",
+    "category": "draw",
+    "dtm": 0,
+    "dtz": 0
+   },
+   {
+    "uci": "d5c4",
+    "category": "draw",
+    "dtm": 0,
+    "dtz": 0
+   },
+   {
+    "uci": "d5d4",
+    "category": "draw",
+    "dtm": 0,
+    "dtz": 0
+   },
+   {
+    "uci": "d5c5",
+    "category": "draw",
+    "dtm": 0,
+    "dtz": 0
+   },
+   {
+    "uci": "d5c6",
+    "category": "draw",
+    "dtm": 0,
+    "dtz": 0
+   }
+  ]
+ }
+}
