@@ -1,5 +1,7 @@
 // Pure progress rules. Functions never mutate their input.
 import { starsForLives } from "./stars.js";
+import { scheduleAnswer } from "./review.js";
+import { updateStreak } from "./streak.js";
 
 /**
  * @typedef {{ version: 6,
@@ -98,4 +100,20 @@ export function recordBossResult(p, bossId, ids, grade) {
     },
     bossGate,
   };
+}
+
+/** Records one answered puzzle: tag stats + spaced review. Never touches the streak. */
+export function recordAnswer(p, puzzle, correct, today) {
+  const tag = puzzle.tag;
+  return {
+    ...p,
+    tagSeen: { ...p.tagSeen, [tag]: (p.tagSeen[tag] || 0) + 1 },
+    tagMisses: correct ? p.tagMisses : { ...p.tagMisses, [tag]: (p.tagMisses[tag] || 0) + 1 },
+    review: scheduleAnswer(p.review, puzzle.id, correct, today),
+  };
+}
+
+/** The only place the streak moves: a completed daily session. */
+export function completeSession(p, today) {
+  return { ...p, streak: updateStreak(p.streak, today) };
 }
