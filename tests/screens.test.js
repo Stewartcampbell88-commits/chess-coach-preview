@@ -6,7 +6,7 @@ import { parseFen } from "../js/chess/board.js";
 const opts = { today: "2026-10-20", updateReady: false, updateChecking: false, appVersion: "chess-coach-v6" };
 test("map shows all worlds, one playable level, daily button", () => { const h = renderMap(defaultProgress(), WORLDS, opts);
   for (const w of WORLDS) assert.ok(h.includes(w.name), w.name);
-  assert.equal(h.match(/data-action="play-level"/g).length, 1); assert.equal(h.match(/Coming soon/g).length, 5);
+  assert.equal(h.match(/data-action="play-level"/g).length, 1); assert.equal(h.match(/Coming soon/g).length, 3);
   assert.ok(h.includes("Play today's session")); assert.ok(h.includes("Check for update")); assert.ok(h.includes("chess-coach-v6"));
   assert.ok(!/chess\.com/i.test(h)); });
 test("update banner when ready", () => assert.ok(renderMap(defaultProgress(), WORLDS, { ...opts, updateReady: true }).includes("Update now")));

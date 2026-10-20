@@ -35,3 +35,7 @@ test("size limits", () => {
   const deep = { h1h2: { reply: "e8e7", next: { h2h3: { reply: "e7e8", next: { h3h4: { reply: "e8e7", next: { h4h5: null } } } } } } };
   assert.match(treeErrors("4k3/8/8/8/8/8/8/4K2R w - - 0 1", deep).join(), /line too long/);
 });
+test("m1-minor must be mated by a knight, bishop or pawn", async () =>
+  assert.match((await validateLine({ ...base, tag: "m1-minor" }, ctx)).join(), /m1-minor: mate is delivered by r/));
+test("m1-qr accepts a rook mate", async () =>
+  assert.deepEqual(await validateLine({ ...base, tag: "m1-qr" }, ctx), []));

@@ -26,6 +26,7 @@ const SHELL = [
   "./js/chess/board.js",
   "./js/chess/rules.js",
   "./js/data/puzzles-w1.js",
+  "./js/data/puzzles-w2.js",
   "./js/data/puzzles.js",
   "./js/data/worlds.js",
   "./js/logic/answer.js",

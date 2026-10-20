@@ -1,3 +1,4 @@
+import { lineStart, lineKeys } from "../js/logic/line.js";
 import test from "node:test"; import assert from "node:assert/strict";
 import { legalTargets, isLegalMove, hintSquares, hintText } from "../js/chess/rules.js";
 import { normaliseUci, playUci, turnOf } from "../js/chess/rules.js";
@@ -21,7 +22,7 @@ test("hint for tap puzzles = white attacker(s) of a hanging piece, never the ans
   const p = PUZZLES.find(x => x.id === "w1-l1-01");
   assert.deepEqual(hintSquares(p), ["f3"]); assert.ok(hintSquares(p).every(s => !p.accept.includes(s))); });
 test("every puzzle has a non-empty hint and hint text", () => { for (const p of PUZZLES) {
-  assert.ok(hintSquares(p).length > 0, p.id); assert.ok(hintText(p).length > 0, p.id); } });
+  assert.ok(hintSquares(p, p.kind === "line" ? lineKeys(lineStart(p)) : null).length > 0, p.id); assert.ok(hintText(p).length > 0, p.id); } });
 test("normaliseUci: legal LAN, auto-queen, illegal null", () => {
   assert.equal(normaliseUci("8/4P3/8/8/8/8/8/k3K3 w - - 0 1", "e7e8"), "e7e8q");
   assert.equal(normaliseUci("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "E2E4"), "e2e4");

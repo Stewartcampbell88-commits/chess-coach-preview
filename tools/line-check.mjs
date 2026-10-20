@@ -85,6 +85,13 @@ export async function validateLine(p, ctx) {
     if (p.tag === "backrank" && !isBackRankMate(playLine(p.fen, lineMainline(p.tree)))) {
       errs.push("backrank: the main line does not end in a back-rank mate");
     }
+    const MATE_PIECES = { "m1-qr": "qr", "m1-minor": "nbp" };
+    if (MATE_PIECES[p.tag]) {
+      const ml = lineMainline(p.tree);
+      const before = playLine(p.fen, ml.slice(0, -1));
+      const piece = new Chess(before).get(ml[ml.length - 1].slice(0, 2)).type;
+      if (!MATE_PIECES[p.tag].includes(piece)) errs.push(`${p.tag}: mate is delivered by ${piece}, expected one of ${MATE_PIECES[p.tag]}`);
+    }
   } else if (p.goal === "engine") {
     if (!ctx.engineTree) return [...errs, "engine goal needs tools/engine.mjs"];
     expected = await ctx.engineTree(p.fen, p.length, ctx.engine, errs);

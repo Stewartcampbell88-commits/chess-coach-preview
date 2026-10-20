@@ -5,7 +5,8 @@ const clearAll = (p) => ["w1-l1","w1-l2","w1-l3","w1-l4"].reduce((q, id) => P.re
 test("stars from lives", () => assert.deepEqual([3,2,1,0,5,-1].map(starsForLives), [3,2,1,0,3,0]));
 test("fresh: only w1-l1 open", () => { const p = P.defaultProgress();
   assert.equal(P.levelStatus(p, WORLDS, "w1-l1"), "open"); assert.equal(P.levelStatus(p, WORLDS, "w1-l2"), "locked");
-  assert.equal(P.bossStatus(p, WORLDS, 1), "locked"); assert.equal(P.worldStatus(p, WORLDS, 2), "coming-soon");
+  assert.equal(P.bossStatus(p, WORLDS, 1), "locked"); assert.equal(P.worldStatus(p, WORLDS, 2), "locked");
+  assert.equal(P.levelStatus(p, WORLDS, "w2-l1"), "locked"); assert.equal(P.worldStatus(p, WORLDS, 4), "coming-soon");
   assert.equal(P.currentLevelId(p, WORLDS), "w1-l1"); });
 test("clearing unlocks next and keeps best stars", () => {
   let p = P.recordLevelResult(P.defaultProgress(), "w1-l1", 2);
@@ -18,9 +19,13 @@ test("boss fail gates until weak level re-cleared", () => {
   assert.equal(P.bossStatus(p, WORLDS, 1), "gated"); assert.equal(p.bossGate["w1-boss"], "w1-l3");
   assert.equal(p.bosses["w1-boss"].attempts, 1);
   p = P.recordLevelResult(p, "w1-l3", 1); assert.equal(P.bossStatus(p, WORLDS, 1), "open"); });
-test("boss pass completes world 1 only", () => {
+test("boss pass completes world 1 and opens World 2 (no skip-ahead)", () => {
   const p = P.recordBossResult(clearAll(P.defaultProgress()), "w1-boss", ["a"], { score: 4, passed: true, weakLevelId: null, weakTags: [] });
-  assert.equal(P.worldStatus(p, WORLDS, 1), "passed"); assert.equal(P.worldStatus(p, WORLDS, 2), "coming-soon"); });
+  assert.equal(P.worldStatus(p, WORLDS, 1), "passed"); assert.equal(P.worldStatus(p, WORLDS, 2), "open");
+  assert.equal(P.levelStatus(p, WORLDS, "w2-l1"), "open"); assert.equal(P.levelStatus(p, WORLDS, "w2-l2"), "locked");
+  assert.equal(P.worldStatus(p, WORLDS, 3), "locked"); assert.equal(P.currentLevelId(p, WORLDS), "w2-l1"); });
+test("all World 1 levels cleared but boss not passed: World 2 stays locked", () =>
+  assert.equal(P.levelStatus(clearAll(P.defaultProgress()), WORLDS, "w2-l1"), "locked"));
 import { starsForResult } from "../js/logic/stars.js";
 test("hints cost one star, never below 1 on a clear", () => {
   assert.equal(starsForResult(3, 0), 3); assert.equal(starsForResult(3, 2), 2); assert.equal(starsForResult(1, 1), 1); assert.equal(starsForResult(0, 0), 0); });
