@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
+import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles.js";
 import { buildDailySession } from "../js/logic/session.js"; import { makeRng } from "../js/logic/rng.js";
 import * as P from "../js/logic/progress.js";
 const byId = new Map(PUZZLES.map(p => [p.id, p])), today = "2026-10-20";

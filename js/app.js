@@ -1,7 +1,7 @@
 // App shell: tabs + puzzle flow + DOM events. All rules live in js/logic.
 import { APP_VERSION } from "./version.js";
 import { WORLDS } from "./data/worlds.js";
-import { PUZZLES, puzzlesById } from "./data/puzzles-w1.js";
+import { PUZZLES, puzzlesById } from "./data/puzzles.js";
 import { parseFen } from "./chess/board.js";
 import { isLegalMove, hintSquares, hintText } from "./chess/rules.js";
 import { LIVES_PER_LEVEL, starsForResult } from "./logic/stars.js";

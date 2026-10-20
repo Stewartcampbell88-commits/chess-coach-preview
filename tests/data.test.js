@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
+import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES, puzzlesById } from "../js/data/puzzles.js";
 test("six worlds in spec order", () => assert.deepEqual(WORLDS.map(w => w.name),
   ["Don't Hang Pieces","Mate in 1 & 2","Forks & Double Attacks","Pins & Skewers","Survive the Opening","Simple Endgames"]));
 test("worlds 2-6 coming soon", () => assert.ok(WORLDS.slice(1).every(w => w.comingSoon && w.levels.length === 0)));
@@ -12,3 +12,8 @@ test("boss pool: 12, 3 per tag, never in levels", () => {
   for (const t of ["spot","free","count","save"]) assert.equal(b.filter(p => p.tag === t).length, 3);
   assert.ok(b.every(p => p.level === null)); });
 test("no duplicate positions", () => assert.equal(new Set(PUZZLES.map(p => p.fen.split(" ")[0])).size, PUZZLES.length));
+test("aggregator exposes every world file", () => {
+  assert.ok(PUZZLES.length >= 32);
+  assert.equal(puzzlesById().get("w1-l1-01").world, 1);
+  assert.equal(puzzlesById().size, PUZZLES.length);
+});

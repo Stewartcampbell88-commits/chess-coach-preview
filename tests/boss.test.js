@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
+import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles.js";
 import { buildBoss, gradeBoss } from "../js/logic/boss.js"; import { makeRng } from "../js/logic/rng.js";
 const w1 = WORLDS[0], byId = new Map(PUZZLES.map(p => [p.id, p]));
 const bossIds = (t) => PUZZLES.filter(p => p.boss === "w1-boss" && p.tag === t).map(p => p.id);
