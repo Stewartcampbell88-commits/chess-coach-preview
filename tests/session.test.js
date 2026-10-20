@@ -22,3 +22,22 @@ test("all cleared: full 10 from playable, no boss ids", () => {
 test("review ids from locked levels are skipped", () => {
   const p = { ...P.defaultProgress(), review: { "w1-l4-01": { box: 0, due: "2026-10-01" } } };
   assert.ok(!run(p).includes("w1-l4-01")); });
+const passBoss = (p, id) => P.recordBossResult(p, id, [], { score: 5, passed: true, weakLevelId: null, weakTags: [] });
+const clearWorld = (p, w) => passBoss(w.levels.reduce((q, l) => P.recordLevelResult(q, l.id, 3), p), w.boss.id);
+test("no endgame warm-up before World 3 opens", () => {
+  const p = clearWorld(P.defaultProgress(), WORLDS[0]);
+  assert.ok(run(p).every((id) => !byId.get(id).drip));
+});
+test("exactly one endgame warm-up per session once World 3 is open", () => {
+  const p = clearWorld(clearWorld(P.defaultProgress(), WORLDS[0]), WORLDS[1]);
+  const ids = run(p);
+  assert.equal(ids.length, 10);
+  assert.equal(new Set(ids).size, 10);
+  assert.equal(ids.filter((id) => byId.get(id).drip).length, 1);
+});
+test("a due warm-up comes back before a fresh one", () => {
+  let p = clearWorld(clearWorld(P.defaultProgress(), WORLDS[0]), WORLDS[1]);
+  const dripId = PUZZLES.filter((x) => x.drip).map((x) => x.id).sort().at(-1);
+  p = { ...p, review: { [dripId]: { box: 0, due: "2026-10-19" } } };
+  assert.ok(run(p).includes(dripId));
+});

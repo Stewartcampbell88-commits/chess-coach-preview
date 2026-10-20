@@ -50,3 +50,12 @@ test("boss buttons carry their world id", () => {
   assert.match(renderLevelResult({ levelName: "L", stars: 3, livesLeft: 3, nextLevelName: null, bossUnlocked: true, worldId: 2 }),
     /data-action="play-boss" data-world="2"/);
 });
+test("review counts due endgame warm-ups", () => {
+  const id = PUZZLES.find((p) => p.drip).id;
+  const p = { ...defaultProgress(), review: { [id]: { box: 0, due: "2026-10-19" } } };
+  assert.match(renderReview(p, WORLDS, PUZZLES, { today: "2026-10-20" }), /<p class="hero-num">1<\/p>/);
+});
+test("review shows an Endgame warm-ups accuracy row once played", () => {
+  const p = { ...defaultProgress(), tagSeen: { "eg-drip": 4 }, tagMisses: { "eg-drip": 1 } };
+  assert.match(renderReview(p, WORLDS, PUZZLES, { today: "2026-10-20" }), /Endgame warm-ups[\s\S]*75%/);
+});

@@ -186,7 +186,7 @@ export function renderDaily(progress, { today, updateReady, muted = false }) {
 
 // ——— Review tab ———
 export function renderReview(progress, worlds, puzzles, { today, updateReady, muted = false }) {
-  const known = new Set(puzzles.filter((p) => p.level).map((p) => p.id));
+  const known = new Set(puzzles.filter((p) => p.level || p.drip).map((p) => p.id));
   const due = dueIds(progress.review, today).filter((id) => known.has(id)).length;
   const tracked = Object.keys(progress.review).filter((id) => known.has(id)).length;
   const rows = worlds.flatMap((w) => w.levels).map((l) => {
@@ -195,6 +195,11 @@ export function renderReview(progress, worlds, puzzles, { today, updateReady, mu
     const pct = seen ? Math.round(((seen - miss) / seen) * 100) : null;
     return `<li><span>${l.name}</span><span class="bar"><i style="width:${pct ?? 0}%"></i></span><b>${pct === null ? "—" : pct + "%"}</b></li>`;
   }).join("");
+  const egSeen = progress.tagSeen["eg-drip"] || 0, egMiss = progress.tagMisses["eg-drip"] || 0;
+  const egPct = egSeen ? Math.round(((egSeen - egMiss) / egSeen) * 100) : 0;
+  const egRow = egSeen
+    ? `<li><span>Endgame warm-ups</span><span class="bar"><i style="width:${egPct}%"></i></span><b>${egPct}%</b></li>`
+    : "";
   return `
     ${pageHeader("Review", { muted })}
     ${updateBanner(updateReady)}
@@ -207,7 +212,7 @@ export function renderReview(progress, worlds, puzzles, { today, updateReady, mu
     </div>
     <div class="card">
       <p class="tiny">Accuracy by skill</p>
-      <ul class="skill-list">${rows}</ul>
+      <ul class="skill-list">${rows}${egRow}</ul>
     </div>`;
 }
 

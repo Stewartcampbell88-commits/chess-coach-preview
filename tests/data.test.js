@@ -55,3 +55,9 @@ test("line puzzles have a goal and a non-empty tree", () => {
 });
 test("no duplicate positions (placement + side to move)", () =>
   assert.equal(new Set(PUZZLES.map((p) => p.fen.split(" ").slice(0, 2).join(" "))).size, PUZZLES.length));
+test("endgame warm-ups: ≥ 12, World 6, outside levels and bosses, tb or mate", () => {
+  const d = PUZZLES.filter((p) => p.drip);
+  assert.ok(d.length >= 12);
+  assert.ok(d.every((p) => p.world === 6 && p.level === null && p.boss === null && p.tag === "eg-drip"
+    && p.kind === "line" && (p.goal === "tb" || p.goal === "mate")));
+});
