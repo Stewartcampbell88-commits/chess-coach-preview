@@ -1,7 +1,7 @@
 {
   "name": "Chess - Teacher",
   "short_name": "Chess - Teacher",
-  "description": "Game-level ladder toward 1500 Rapid — hangs, Italian, one White system, clock",
+  "description": "5–10 minute daily chess training toward 1500 Rapid",
   "id": "./",
   "start_url": "./",
   "scope": "./",

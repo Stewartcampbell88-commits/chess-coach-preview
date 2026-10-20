@@ -15,7 +15,7 @@ function pickPreferFresh(candidates, avoid, rng) {
 export function buildBoss(world, puzzles, lastIds, rng) {
   const pool = puzzles.filter((p) => world.boss && p.boss === world.boss.id);
   if (pool.length < BOSS_SIZE) throw new Error("Boss pool too small");
-  const avoid = new Set(lastIds || []);
+  const avoid = new Set(Array.isArray(lastIds) ? lastIds : []);
   const chosen = [];
   const taken = new Set();
   for (const level of world.levels) {

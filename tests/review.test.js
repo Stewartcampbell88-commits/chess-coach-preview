@@ -7,3 +7,8 @@ test("hit climbs boxes", () => { const r = scheduleAnswer({ a: { box: 0, due: "2
 test("top box stays at 35 days", () => assert.deepEqual(scheduleAnswer({ a: { box: 4, due: "2026-10-20" } }, "a", true, "2026-10-20").a, { box: 4, due: "2026-11-24" }));
 test("hit on untracked ignored", () => assert.deepEqual(scheduleAnswer({}, "a", true, "2026-10-20"), {}));
 test("dueIds sorted", () => assert.deepEqual(dueIds({ b: { box: 0, due: "2026-10-19" }, a: { box: 0, due: "2026-10-19" }, c: { box: 1, due: "2026-10-25" } }, "2026-10-20"), ["a", "b"]));
+test("malformed review entries are ignored, not fatal", () => {
+  const bad = { a: null, b: { box: "x" }, c: { box: 0, due: "2026-10-19" } };
+  assert.deepEqual(dueIds(bad, "2026-10-20"), ["c"]);
+  assert.deepEqual(scheduleAnswer({ a: null }, "a", true, "2026-10-20").a, null);
+  assert.deepEqual(scheduleAnswer({ a: { box: "x", due: 5 } }, "a", true, "2026-10-20").a, { box: 1, due: "2026-10-23" }); });

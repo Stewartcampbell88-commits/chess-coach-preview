@@ -1,13 +1,32 @@
-const CACHE = "chess-coach-v5";
+const CACHE = "chess-coach-v6";
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./favicon.svg",
+  "./css/app.css",
+  "./js/app.js",
+  "./js/chess/board.js",
+  "./js/data/puzzles-w1.js",
+  "./js/data/worlds.js",
+  "./js/logic/answer.js",
+  "./js/logic/boss.js",
+  "./js/logic/dates.js",
+  "./js/logic/progress.js",
+  "./js/logic/review.js",
+  "./js/logic/rng.js",
+  "./js/logic/session.js",
+  "./js/logic/stars.js",
+  "./js/logic/streak.js",
+  "./js/storage.js",
+  "./js/ui/board-view.js",
+  "./js/ui/screens.js",
+  "./js/ui/update.js",
+  "./js/version.js",
 ];
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => c.addAll(["./", "./index.html"])))
+    caches.open(CACHE).then((c) => c.addAll(SHELL))
   );
   self.skipWaiting();
 });
@@ -35,7 +54,7 @@ self.addEventListener("fetch", (event) => {
         return res;
       })
       .catch(() =>
-        caches.match(event.request).then((hit) => hit || caches.match("./index.html") || caches.match("./"))
+        caches.match(event.request).then((hit) => hit || caches.match("./index.html"))
       )
   );
 });
