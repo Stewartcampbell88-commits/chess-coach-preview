@@ -44,3 +44,9 @@ test("review, profile and daily tabs render stats", () => {
   const r = renderReview(p, WORLDS, PUZZLES, opts); assert.ok(r.includes("75%")); assert.match(r, /hero-num">1</);
   const pr = renderProfile(p, WORLDS, opts); assert.ok(pr.includes("Day streak") && pr.includes("Check for update") && pr.includes('data-action="toggle-sound"'));
   assert.ok(renderDaily(p, opts).includes("Play today's session")); });
+test("boss buttons carry their world id", () => {
+  const p = ["w1-l1","w1-l2","w1-l3","w1-l4"].reduce((q, id) => recordLevelResult(q, id, 3), defaultProgress());
+  assert.match(renderMap(p, WORLDS, opts), /data-action="play-boss" data-world="1"/);
+  assert.match(renderLevelResult({ levelName: "L", stars: 3, livesLeft: 3, nextLevelName: null, bossUnlocked: true, worldId: 2 }),
+    /data-action="play-boss" data-world="2"/);
+});

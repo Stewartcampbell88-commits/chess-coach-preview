@@ -84,8 +84,8 @@ function bossNode(progress, worlds, world) {
   else if (status === "gated") {
     const gate = findLevel(worlds, progress.bossGate[world.boss.id]);
     action = `<p class="gate-note">Practise ${gate ? gate.level.name : "your weak level"} first, then have another go.</p>`;
-  } else if (status === "passed") action = '<button class="btn grey sm" data-action="play-boss">Replay boss</button>';
-  else action = `<button class="btn gold sm" data-action="play-boss">${ICONS.crown} Fight the boss</button>`;
+  } else if (status === "passed") action = `<button class="btn grey sm" data-action="play-boss" data-world="${world.id}">Replay boss</button>`;
+  else action = `<button class="btn gold sm" data-action="play-boss" data-world="${world.id}">${ICONS.crown} Fight the boss</button>`;
   return `
     <div class="node boss ${cls}">
       <div class="node-dot">${ICONS.crown}</div>
@@ -311,7 +311,7 @@ export function renderPuzzleShell({ title, lives, index, total, coach, actions }
 }
 
 // ——— Results ———
-export function renderLevelResult({ levelName, stars, livesLeft, nextLevelName, bossUnlocked, hintsUsed = 0 }) {
+export function renderLevelResult({ levelName, stars, livesLeft, nextLevelName, bossUnlocked, hintsUsed = 0, worldId = 1 }) {
   if (!stars) {
     return `
       <div class="result">
@@ -329,7 +329,7 @@ export function renderLevelResult({ levelName, stars, livesLeft, nextLevelName, 
     ? '<p class="muted unlock">Boss unlocked!</p>'
     : nextLevelName ? `<p class="muted unlock">Unlocked: <strong>${nextLevelName}</strong></p>` : "";
   const cta = bossUnlocked
-    ? `<button class="btn gold big" data-action="play-boss">${ICONS.crown} Fight the boss</button>`
+    ? `<button class="btn gold big" data-action="play-boss" data-world="${worldId}">${ICONS.crown} Fight the boss</button>`
     : nextLevelName ? `<button class="btn green big" data-action="play-next">Next level ${ICONS.next}</button>` : "";
   return `
     <div class="result">

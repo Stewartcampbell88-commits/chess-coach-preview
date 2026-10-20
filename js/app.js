@@ -3,7 +3,8 @@ import { APP_VERSION } from "./version.js";
 import { WORLDS } from "./data/worlds.js";
 import { PUZZLES, puzzlesById } from "./data/puzzles.js";
 import { parseFen } from "./chess/board.js";
-import { isLegalMove, hintSquares, hintText } from "./chess/rules.js";
+import { hintSquares, hintText, normaliseUci, playUci, turnOf } from "./chess/rules.js";
+import { lineStart, lineStep, lineKeys, lineMainline } from "./logic/line.js";
 import { LIVES_PER_LEVEL, starsForResult } from "./logic/stars.js";
 import {
   levelStatus, bossStatus, recordLevelResult, recordBossResult, recordAnswer, completeSession, setMuted,
@@ -16,7 +17,7 @@ import { localDateKey } from "./logic/dates.js";
 import { displayStreak } from "./logic/streak.js";
 import { loadProgress, saveProgress } from "./storage.js";
 import { initUpdates } from "./ui/update.js";
-import { createBoard } from "./ui/board.js";
+import { createBoard, reducedMotion } from "./ui/board.js";
 import { unlockAudio, playSound, setSoundMuted } from "./ui/sound.js";
 import {
   renderMap, renderDaily, renderReview, renderProfile, renderTabBar,
@@ -33,6 +34,7 @@ const ui = { screen: "tabs", tab: "home" }; // screen: tabs | puzzle | result
 const play = {
   mode: null, levelId: null, worldId: 1, ids: [], index: 0, lives: null, results: [],
   phase: "solving", picked: [], hinted: false, hintsUsed: 0, result: null,
+  fen: null, line: null, // current position and line-puzzle progress
 };
 let board = null;
 let busy = false; // true while a move animation / feedback sequence runs
@@ -55,7 +57,7 @@ function titleFor() {
     const f = findLevel(play.levelId);
     return `Level ${f.index + 1} · ${f.level.name}`;
   }
-  if (play.mode === "boss") return "Boss: Don't Hang Pieces";
+  if (play.mode === "boss") return WORLDS.find((w) => w.id === play.worldId)?.boss?.name || "Boss";
   return "Today's session";
 }
 
@@ -109,8 +111,12 @@ function showPuzzle() {
 
 function resetBoard(extra = {}) {
   const pz = currentPuzzle();
+  play.fen = pz.fen;
+  play.line = pz.kind === "line" ? lineStart(pz) : null;
+  const side = turnOf(pz.fen);
   board.set({
     fen: pz.fen, board: parseFen(pz.fen).board, mode: pz.kind === "tap-hanging" ? "mark" : "move",
+    orientation: side, turn: side,
     sel: null, lastMove: [], hint: [], marks: [], rings: [], badges: {}, ...extra,
   });
 }
@@ -143,16 +149,36 @@ function onMark(sq) {
   refreshChrome();
 }
 
+const sideName = (t) => (t === "w" ? "White" : "Black");
+
 async function onMove(uci, { dragged }) {
   const pz = currentPuzzle();
   if (!canAnswer()) return;
-  if (!isLegalMove(pz.fen, uci)) { board.set({ sel: null }); return; } // illegal: snap back, no penalty
+  const lan = normaliseUci(play.fen, uci);
+  if (!lan) { board.set({ sel: null }); return; } // illegal: snap back, no penalty
   busy = true;
-  const captured = Boolean(board.state.board[uci.slice(2, 4)]);
-  const anim = board.move(uci, { animate: !dragged });
-  playSound(captured ? "capture" : "move");
+  const played = playUci(play.fen, lan);
+  const anim = board.move(lan, { animate: !dragged });
+  playSound(played.captured ? "capture" : "move");
   await anim;
-  await resolve(checkAnswer(pz, { uci }), uci);
+  // Redraw from the real position so castling, en passant and promotion look right.
+  board.set({ fen: played.fen, board: parseFen(played.fen).board });
+  if (pz.kind !== "line") return resolve(checkAnswer(pz, { uci: lan }), lan);
+  const step = lineStep(play.line, lan);
+  if (step.result === "wrong") return resolve(false, lan);
+  play.line = step.state;
+  play.fen = played.fen;
+  if (step.result === "solved") return resolve(true, lan);
+  await wait(reducedMotion() ? 0 : 350);
+  if (ui.screen !== "puzzle" || currentPuzzle() !== pz) return; // left the puzzle meanwhile
+  const reply = playUci(play.fen, step.reply);
+  const ranim = board.move(step.reply, { animate: true });
+  playSound(reply.captured ? "capture" : "move");
+  await ranim;
+  play.fen = reply.fen;
+  board.set({ fen: reply.fen, board: parseFen(reply.fen).board, mode: "move", hint: [] });
+  refreshChrome({ text: `${sideName(turnOf(reply.fen) === "w" ? "b" : "w")} plays ${reply.san}. Your move — keep going.`, mood: "good" });
+  busy = false;
 }
 
 function submitTaps() {
@@ -188,7 +214,7 @@ async function resolve(correct, uci) {
   board.shake();
   playSound("wrong");
   if (uci) await wait(550);
-  const sol = pz.accept[0];
+  const sol = pz.kind === "line" ? lineMainline(pz.tree)[0] : pz.accept[0];
   resetBoard({
     mode: "view",
     rings: pz.kind === "tap-hanging" ? pz.accept : [sol.slice(0, 2), sol.slice(2, 4)],
@@ -196,7 +222,7 @@ async function resolve(correct, uci) {
   });
   play.phase = "wrong";
   play.picked = [];
-  refreshChrome({ text: `${pz.kind === "tap-hanging" ? "The hanging pieces are ringed." : "The right move is ringed."} ${pz.explain}`, mood: "bad" });
+  refreshChrome({ text: `${pz.kind === "tap-hanging" ? "The hanging pieces are ringed." : pz.kind === "line" ? "The right first move is ringed." : "The right move is ringed."} ${pz.explain}`, mood: "bad" });
   busy = false;
 }
 
@@ -213,7 +239,7 @@ function hint() {
   const pz = currentPuzzle();
   play.hinted = true;
   if (play.phase === "solving") play.hintsUsed += 1;
-  board.set({ hint: hintSquares(pz) });
+  board.set({ hint: hintSquares(pz, play.line ? lineKeys(play.line) : null) });
   refreshChrome({ text: hintText(pz), mood: "hint" });
 }
 
@@ -245,12 +271,14 @@ function finishLevel() {
   progress = recordLevelResult(progress, play.levelId, lives, { hintsUsed: play.hintsUsed });
   persist();
   const nextLevel = f.world.levels[f.index + 1] || null;
+  play.worldId = f.world.id;
   play.result = { nextLevelId: nextLevel ? nextLevel.id : null };
   const stars = starsForResult(lives, play.hintsUsed);
   showResult(renderLevelResult({
     levelName: f.level.name, stars, livesLeft: lives, hintsUsed: stars ? play.hintsUsed : 0,
     nextLevelName: nextLevel ? nextLevel.name : null,
     bossUnlocked: !nextLevel && bossStatus(progress, WORLDS, f.world.id) === "open",
+    worldId: f.world.id,
   }), stars ? "clear" : "wrong");
 }
 
@@ -277,12 +305,12 @@ function startLevel(levelId) {
   begin("level", PUZZLES.filter((p) => p.level === levelId).map((p) => p.id), { levelId });
 }
 
-function startBoss(worldId = 1) {
+function startBoss(worldId) {
   const world = WORLDS.find((w) => w.id === worldId);
   const status = bossStatus(progress, WORLDS, worldId);
   if (!world || !world.boss || (status !== "open" && status !== "passed")) return;
   const prev = progress.bosses[world.boss.id] || { attempts: 0, lastIds: [] };
-  const rng = makeRng(seedFrom(`${today()}#${prev.attempts}`));
+  const rng = makeRng(seedFrom(`${today()}#${world.id}#${prev.attempts}`));
   begin("boss", buildBoss(world, PUZZLES, prev.lastIds, rng), { worldId });
 }
 
@@ -307,7 +335,7 @@ function onAction(action, el) {
     case "play-level": return startLevel(el.getAttribute("data-level"));
     case "play-next": return play.result?.nextLevelId ? startLevel(play.result.nextLevelId) : goTab("home");
     case "retry-level": return startLevel(play.levelId);
-    case "play-boss": return startBoss(play.worldId || 1);
+    case "play-boss": return startBoss(Number(el.getAttribute("data-world")) || play.worldId || 1);
     case "play-session": return startSession();
     case "clear-taps":
       if (!canAnswer()) return undefined;
