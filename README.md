@@ -1,48 +1,51 @@
-# Chess - Teacher — phone preview
+# Chess - Teacher — phone preview (v6)
 
-Game-level ladder for Stewart Campbell (`stewartcamp`) aimed at climbing Chess.com Rapid toward **1500 Elo**, built around real leaks: hanging pieces, Italian / Fried Liver as Black, no stable White system, and clock / abandon habits.
+A 5–10 minute daily chess game for Stewart Campbell (`stewartcamp`) aimed at climbing Chess.com Rapid toward **1500**. It teaches the way a grandmaster would relearn: lots of short, real-position puzzles, tactics before openings, and a boss at the end of each world that checks you've actually learned it.
 
 **Live:** https://stewartcampbell88-commits.github.io/chess-coach-preview/
 
-This is a **direction test** — not the full app. No accounts, no APK. **v5** uses a dark Chess.com-inspired chrome (not logos/wordmarks) and a **Lessons-style vertical path** on Home — numbered nodes, stars, locks — instead of the calm sage Clean Coach home.
+- Spec: `docs/superpowers/specs/2026-10-20-chess-teacher-design.md`
+- Plan: `docs/superpowers/plans/2026-10-20-chess-teacher-v6.md`
 
-## Levels (unlock in order)
+## What's in v6 (Phase 1 preview)
 
-1. **Don't Hang Stuff** — hanging = attacked & not safely defended; multi-tap attacks; tap the hang; MCQ
-2. **Survive the Italian** — after e5 Nf3 Nc6 Bc4 Nf6 watch Ng5; don't allow Nxf7 disasters
-3. **One White System** — **Italian-ish**: `1.e4 2.Nf3 3.Bc4`, castle short, stay consistent (same shapes you face as Black)
-4. **Clock Habits** — leave time; resign vs abandon; soft timed hang-glance (~18s)
+- **Map:** 6 worlds in GM order. World 1 **Don't Hang Pieces** is playable. Worlds 2–6 show as *Coming soon*.
+- **World 1 levels** (5 puzzles each, 3 lives; stars = lives left): Spot the Hanging Piece → Free Lunch → Count Attackers & Defenders → Save Your Piece. 0 lives = soft retry, no progress lost.
+- **Boss:** 5 fresh positions (never used in levels), pass with **4 of 5**. Fail → the app names your weakest level; the boss stays locked until you clear that level again. A retry uses different positions.
+- **Daily session:** one tap, 10 puzzles: 4 weak spots / 4 current level / 2 spaced review (missed puzzles return after 1, 3, 7, 16, 35 days). The streak goes up once per day when a session is finished.
+- Phase 1 puzzles are all White to move, board from White's side.
 
-Clearing a level session unlocks the next. Stars (1–3) track how clean the clear was from hearts left. Empty hearts = soft retry on the same level (preview).
+## Look
 
-## White system choice
+Dark Chess.com-inspired chrome (`#262421` / `#302e2c`), green CTA (`#81b64c`), classic green board (`#eeeed2` / `#769656`). No Chess.com logos or wordmarks.
 
-Documented choice for Level 3: **Italian-ish** (`e4 + Nf3 + Bc4`), not London. Rationale: Stewart's Black leaks are Italian / Fried Liver (C57); owning the same structure as White reinforces patterns both colours.
+## Code layout (no build step, no runtime deps)
 
-## Visual (v5)
+```
+index.html            shell; loads css/app.css and js/app.js (ES module)
+js/app.js             screen state machine + DOM events
+js/ui/                board-view, screens (pure HTML renderers), update (service worker UX)
+js/logic/             pure rules: stars, progress/unlocks, boss, session, review, streak, dates, rng, answer
+js/data/              worlds + World 1 puzzles
+js/chess/board.js     FEN parsing
+js/storage.js         localStorage (key chess-teacher-v6), never throws
+tools/                dev-only puzzle validator (chess.js) — not used by the app
+tests/                node --test unit tests
+```
 
-Dark app chrome (`#262421` / `#302e2c`), primary CTA green (`#81b64c`), classic green board (`#eeeed2` / `#769656`). Home is a vertical mini-game / lessons path with locks and star ratings — not a light card list.
+## Checks
 
-## Board
+```bash
+npm test            # unit tests (Node 20+, no install needed)
+npm run validate    # installs chess.js into tools/ and checks every puzzle
+```
 
-Square board via `aspect-ratio` + CSS grid `minmax(0,1fr)`. Piece size uses `cqmin` on a size container so Unicode pieces no longer stretch row height into rectangles. Last-move style yellow/green highlights; selected square green outline.
+The validator works out the correct answer for every puzzle itself (legal position, static-exchange "is it really hanging?", no mate-in-1 allowed, and so on) and fails if a puzzle's answer key differs.
 
 ## Updates (service worker)
 
-Cache / app version: `chess-coach-v5` (keep `CACHE` in `sw.js` and `APP_VERSION` in `index.html` in lockstep). Storage key: `chess-teacher-v5` (migrates from v4 when present).
-
-When shipping a change, bump both to `chess-coach-vN`. The phone PWA checks GitHub Pages on open/focus (and hourly) via `reg.update()`. If a new service worker is waiting, Home shows **Update available** → **Update now**. You can also tap **Check for update** on Home.
-
-If the page still looks stale after a bump:
-
-1. Open the Pages URL (or the home-screen app)
-2. Tap **Check for update**, then **Update now** if offered
-3. Or force-close the home-screen app and reopen / clear site data
-
-## Stack
-
-Vanilla HTML/CSS/JS PWA. Unicode chess board. GitHub Pages from `main` `/`.
+`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v6` and must move together. Every file under `js/` and `css/` must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
 
 ## Local
 
-Open `index.html` in a mobile browser, or serve the folder over HTTPS/localhost so the service worker can register.
+Serve the folder (ES modules don't load from `file://`), e.g. `python3 -m http.server 8765`, then open http://localhost:8765/.
