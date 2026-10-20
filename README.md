@@ -1,15 +1,17 @@
-# Chess - Teacher — phone preview (v8)
+# Chess - Teacher — phone preview (v8.1)
 
 A 5–10 minute daily chess game for Stewart Campbell (`stewartcamp`) aimed at climbing Chess.com Rapid toward **1500**. It teaches the way a grandmaster would relearn: lots of short, real-position puzzles, tactics before openings, and a boss at the end of each world that checks you've actually learned it.
 
 **Live:** https://stewartcampbell88-commits.github.io/chess-coach-preview/
 
 - Spec: `docs/superpowers/specs/2026-10-20-chess-teacher-design.md`
-- Plans: `docs/superpowers/plans/2026-10-20-chess-teacher-v6.md`, `docs/superpowers/plans/2026-10-20-chess-teacher-phase2.md` (v8 = Part A)
+- Plans: `docs/superpowers/plans/2026-10-20-chess-teacher-v6.md`, `docs/superpowers/plans/2026-10-20-chess-teacher-phase2.md` (v8 = Part A; v8.1 = map + rank UI; v8.2 = World 4; v8.3 = Worlds 5–6)
 
-## What's in it (v8: Worlds 1–3, v7 look)
+## What's in it (v8.1: game-style map + rank ladder, Worlds 1–3)
 
-- **Map:** 6 worlds in GM order. Worlds 1–3 are playable; Worlds 4–6 show as *Coming soon*. Each world opens only once the previous world's boss is passed (no skip-ahead).
+- **Home = winding world map (v8.1):** a scrollable road snakes upward through a themed zone per world (Meadow, Mate Castle, Fork Forest, then Pin Peaks / Opening Coast / Endgame Summit). Level bubbles show your stars; a pawn token sits on your current level and hops forward after a clear (no animation with reduced motion). Each world ends in a boss castle that gets a flag and tick when beaten. Locked worlds sit under fog with a lock; Worlds 4–6 say *Coming soon*. The map opens scrolled to your current level. Tap a bubble or castle for a sheet with its name, stars and Play/Replay; tapping something locked explains what to do first. The top bar keeps streak, total stars and the 1500 goal; **Play today's session** floats above the tabs.
+- **Rank ladder (v8.1):** the rank badge at the top of Home opens the ladder. One league per world: Wood (W1) → Stone (W2) → Bronze (W3) → Silver (W4) → Gold (W5) → Master (W6, Rapid 1500). It shows your league's shield and star bar, your next match, the promotion match (that world's boss), and every league with ticks, locks and stars. Beating a boss the first time plays a promotion screen with a fanfare. All of this is derived from existing progress (`js/logic/league.js`, `js/logic/map-layout.js`), so nothing new is stored.
+- **Worlds:** 6 worlds in GM order. Worlds 1–3 are playable; Worlds 4–6 show as *Coming soon*. Each world opens only once the previous world's boss is passed (no skip-ahead).
 - **World 2 Mate in 1 & 2:** Mate in 1 with Queen & Rook → Back-Rank Mate → Mate in 1 with Knight, Bishop & Pawn → Mate in 2. In a mate-in-2 you play your move, the coach plays the opponent's reply on the board, then you finish.
 - **World 3 Forks & Double Attacks:** Knight Forks → Queen Forks → Pawn Forks → Double Attacks (incl. discovered attacks). Fork, they reply, you collect.
 - **Black to move:** about a third of World 2–3 puzzles are Black to move, and the board flips so Black is at the bottom.
@@ -37,10 +39,10 @@ The dark mobile chess-app style (`#312e2b` family), green buttons with a raised 
 ```
 index.html            shell; loads css/app.css and js/app.js (ES module)
 js/app.js             tabs + puzzle flow + DOM events
-js/ui/                board (drag/tap controller), board-markup (pure), screens (pure HTML), icons, sound, update (service worker UX)
+js/ui/                board (drag/tap controller), board-markup (pure), screens + journey (pure HTML: map, sheet, rank, promotion), icons, sound, update (service worker UX)
 js/chess/rules.js     legal moves + hints (uses js/vendor/chess.js, BSD-2)
 assets/pieces/        cburnett SVG pieces (GPLv2+) + licence text
-js/logic/             pure rules: stars, progress/unlocks, boss, session, review, streak, dates, rng, answer
+js/logic/             pure rules: stars, progress/unlocks, boss, session, review, streak, dates, rng, answer, league (rank ladder), map-layout (map path/nodes)
 js/data/              worlds + puzzles-w1/w2/w3/drip, joined in puzzles.js
 js/logic/line.js      multi-move (line) puzzle tree follower
 js/chess/board.js     FEN parsing
@@ -67,7 +69,7 @@ Helpers: `node tools/validate-puzzles.mjs --suggest-line "<fen>" mate|engine|tb 
 
 ## Updates (service worker)
 
-`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v8` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG and each PNG in `icons/`, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
+`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v8.1` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG and each PNG in `icons/`, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
 
 ## Local
 

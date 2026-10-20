@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Worlds 2–6 playable in three sub-releases: **v8** (Worlds 2–3, plus endgame review), **v8.1** (World 4) and **v8.2** (Worlds 5–6). Every puzzle must be checked by a dev-only validator that understands multi-move solutions, the opponent's replies, Black-to-move positions, opening book lines and short tablebase-checked endgames.
+**Goal:** Make Worlds 2–6 playable in three content sub-releases: **v8** (Worlds 2–3, plus endgame review), **v8.2** (World 4) and **v8.3** (Worlds 5–6). (**v8.1** was inserted later as a UI-only release: the winding map + rank ladder.) Every puzzle must be checked by a dev-only validator that understands multi-move solutions, the opponent's replies, Black-to-move positions, opening book lines and short tablebase-checked endgames.
 
 **Architecture:** World 1 kinds (`tap-hanging`, `take-free`, `save-piece`) stay exactly as they are. All new puzzles use one new kind, `"line"`, built around a small **move tree** (`{ [playerUci]: null | { reply, next } }`). The app follows the tree with pure code (`js/logic/line.js`) and never needs an engine. The validator in `tools/` **recomputes every tree** and fails if the stored tree differs:
 - **mate:** exact chess.js search.
@@ -20,9 +20,10 @@ The board learns to flip for Black. The puzzle flow plays the opponent's reply a
 
 | Release | Tasks | What Stewart gets | Why this split |
 |---|---|---|---|
-| **v8** (`chess-coach-v8`) | A1–A11 | **World 2** Mate in 1 & 2 and **World 3** Forks & Double Attacks, Black-to-move puzzles on a flipped board, and the opponent replying in 2-move puzzles. From World 3 onward, one endgame warm-up appears in every daily session. | Worlds 2 and 3 need almost all of the new machinery (lines, flipping, mate/engine/tablebase checks), so building it once and shipping two worlds gives the most to play soonest. |
-| **v8.1** (`chess-coach-v8.1`) | B1–B3 | **World 4** Pins & Skewers | Adds only new theme detectors and content. Small, so it ships quickly. |
-| **v8.2** (`chess-coach-v8.2`) | C1–C4 | **World 5** Survive the Opening and **World 6** Simple Endgames | Openings need the "book" check (`from` replay); endgames reuse the tablebase check from v8. |
+| **v8** (`chess-coach-v8`) ✅ shipped | A1–A11 | **World 2** Mate in 1 & 2 and **World 3** Forks & Double Attacks, Black-to-move puzzles on a flipped board, and the opponent replying in 2-move puzzles. From World 3 onward, one endgame warm-up appears in every daily session. | Worlds 2 and 3 need almost all of the new machinery (lines, flipping, mate/engine/tablebase checks), so building it once and shipping two worlds gives the most to play soonest. |
+| **v8.1** (`chess-coach-v8.1`) | UI only (no plan tasks) | **Game-style Home**: a winding world map (themed zones, level bubbles with stars, pawn token that hops forward, boss castles, fog over locked worlds), a rank badge, and a **Rank ladder** (Wood → Stone → Bronze → Silver → Gold → Master = Rapid 1500; beating a boss = promotion). | Stewart picked mockup A (map) + B (ladder) on 2026-10-20. Everything is derived from existing progress, so no content or storage change. |
+| **v8.2** (`chess-coach-v8.2`) | B1–B3 | **World 4** Pins & Skewers (Silver league) | Adds only new theme detectors and content. Small, so it ships quickly. |
+| **v8.3** (`chess-coach-v8.3`) | C1–C4 | **World 5** Survive the Opening and **World 6** Simple Endgames | Openings need the "book" check (`from` replay); endgames reuse the tablebase check from v8. |
 
 Each release is a full test → validate → smoke → screenshots → push → live check cycle. Worlds not yet released stay **Coming soon** on the map.
 
@@ -30,7 +31,7 @@ Each release is a full test → validate → smoke → screenshots → push → 
 
 - App name **Chess - Teacher**. No Chess.com logos, wordmarks, piece art or sounds. Keep the v7 look and feel: dark `#312e2b` family, board `#ebecd0` / `#739552`, cburnett SVG pieces, drag and tap-tap moves, coach bubble, Hint/Retry/Next bar, WebAudio sounds, and prefers-reduced-motion respected.
 - **Storage key stays `chess-teacher-v6`.** Progress shape `version: 6` is unchanged; new data only adds new ids and tags.
-- `APP_VERSION` (`js/version.js`) and the sw `CACHE` move together: `chess-coach-v8`, then `chess-coach-v8.1`, then `chess-coach-v8.2`.
+- `APP_VERSION` (`js/version.js`) and the sw `CACHE` move together: `chess-coach-v8`, then `chess-coach-v8.1` (map/rank UI), `chess-coach-v8.2` (World 4), `chess-coach-v8.3` (Worlds 5–6).
 - Every file under `js/`, `css/`, `assets/pieces/` (svg) and `icons/` (png) must be in `SHELL` in `sw.js` (enforced by `tests/sw.test.js`).
 - Keep the update UX: **Check for update**, **Update available** banner, **Update now**.
 - Manifest `id` stays `/chess-coach-preview/`; don't touch icons.
@@ -48,7 +49,7 @@ Each release is a full test → validate → smoke → screenshots → push → 
 
 1. **The app and validator agree on the tree.** The app only follows `tree` and the validator recomputes it. Pinned by `tools/tests/line-check.test.mjs` and `tests/line.test.js`.
 2. **Flipped board input.** Taps and drags on a Black-oriented board must map to the right squares, and Black's own pieces must be draggable. Pinned by `squareFromXY` tests (Task A3) and the v8 smoke test.
-3. **Castling, en passant and promotion displays.** After any move the board is redrawn from the chess.js FEN, not from `applyUci`, so the rook moves when castling and the pawn disappears after en passant. Pinned in Task A4 and smoke-tested in v8.2 (book castling).
+3. **Castling, en passant and promotion displays.** After any move the board is redrawn from the chess.js FEN, not from `applyUci`, so the rook moves when castling and the pawn disappears after en passant. Pinned in Task A4 and smoke-tested in v8.3 (book castling).
 4. **Old saved progress.** v7 progress must load and show Worlds 2–3 locked until the World 1 boss is passed, with no blank screens. Covered by storage tests (unchanged) and a seeded-progress smoke check.
 5. **Engine non-determinism.** Stockfish results are cached in `tools/cache/engine.json` (committed), so re-validation is reproducible offline. Tests never assert an engine reply, only player keys.
 6. **Tablebase offline.** Responses are cached in `tools/cache/tablebase.json`. A missing cache entry with no network fails loudly with instructions.
@@ -62,9 +63,9 @@ js/data/puzzles.js          NEW  aggregator: PUZZLES = all world files; puzzlesB
 js/data/puzzles-w2.js       NEW  (v8)   World 2: 20 level + 12 boss line puzzles
 js/data/puzzles-w3.js       NEW  (v8)   World 3
 js/data/puzzles-drip.js     NEW  (v8)   12 endgame warm-ups (world 6, drip: true)
-js/data/puzzles-w4.js       NEW  (v8.1) World 4
-js/data/puzzles-w5.js       NEW  (v8.2) World 5 (book)
-js/data/puzzles-w6.js       NEW  (v8.2) World 6 (tb + mate)
+js/data/puzzles-w4.js       NEW  (v8.2) World 4
+js/data/puzzles-w5.js       NEW  (v8.3) World 5 (book)
+js/data/puzzles-w6.js       NEW  (v8.3) World 6 (tb + mate)
 js/data/worlds.js           MOD  levels/boss per world as each release lands
 js/logic/line.js            NEW  pure tree follower: lineStart, lineStep, lineKeys, lineMainline, treeStats
 js/logic/session.js         MOD  endgame drip: dripActive, DRIP_PER_SESSION
@@ -75,7 +76,7 @@ js/ui/screens.js            MOD  boss buttons carry data-world; review counts dr
 js/app.js                   MOD  line play (opponent replies), per-world boss, flipped board
 tools/common.mjs            NEW  moveLan, fenAfterLan, sanOf, playLine, pieceCount, materialBalance
 tools/mate.mjs              NEW  exact mate search + mateTree
-tools/themes.mjs            NEW  fork / double attack / back-rank (v8); pin / skewer / escape (v8.1)
+tools/themes.mjs            NEW  fork / double attack / back-rank (v8); pin / skewer / escape (v8.2)
 tools/engine.mjs            NEW  Stockfish UCI adapter + cache
 tools/tablebase.mjs         NEW  Lichess tablebase adapter + cache
 tools/line-check.mjs        NEW  validateLine + suggestLine (mate | engine | tb | book)
@@ -146,7 +147,7 @@ World 1 objects are unchanged. A **line** puzzle is:
 
 # Part A — v8: engine room + Worlds 2–3 + endgame warm-ups
 
-Work on branch `v8` (`git checkout -b v8` from an up-to-date `main`). Part B uses branch `v8.1` and Part C uses `v8.2`, each cut from `main` after the previous release is live.
+Work on branch `v8` (`git checkout -b v8` from an up-to-date `main`). Part B uses branch `v8.2` and Part C uses `v8.3`, each cut from `main` after the previous release is live.
 
 ### Task A1: One puzzle aggregator
 
@@ -2310,7 +2311,7 @@ Expected: `sw.js` contains `chess-coach-v8`, and every file returns `200`. Also 
 
 ---
 
-# Part B — v8.1: World 4 Pins & Skewers
+# Part B — v8.2: World 4 Pins & Skewers
 
 ### Task B1: Pin, skewer and pin-escape detectors
 
@@ -2479,20 +2480,20 @@ Same helpers as `puzzles-w3.js` (`goal: "engine"`, `world: 4`), the same authori
 - [ ] **Step 4:** `npm test && npm run validate` → pass.
 - [ ] **Step 5:** `git add -A && git commit -m "content: World 4 Pins & Skewers (32 engine-checked puzzles)"`
 
-### Task B3: Release v8.1
+### Task B3: Release v8.2
 
 Same steps as A11 with these changes:
-- version `chess-coach-v8.1` in `js/version.js`, `sw.js` and `tests/sw.test.js`
+- version `chess-coach-v8.2` in `js/version.js`, `sw.js` and `tests/sw.test.js`
 - smoke7: `worlds 5–6 Coming soon` (count 2)
 - `smoke8.mjs`: seed Worlds 1–3 passed, then play `w4-l1` and `w4-l4` once and the World 4 boss
-- screenshots to `/workspace/chess-v8.1-shots/` (`01-map-world4`, `02-pin`, `03-skewer`, `04-pin-escape-black`, `05-w4-boss`)
-- live check `js/data/puzzles-w4.js` returns 200 and `sw.js` contains `chess-coach-v8.1`
+- screenshots to `/workspace/chess-v8.2-shots/` (`01-map-world4`, `02-pin`, `03-skewer`, `04-pin-escape-black`, `05-w4-boss`)
+- live check `js/data/puzzles-w4.js` returns 200 and `sw.js` contains `chess-coach-v8.2`
 
-Commit: `release: v8.1 — World 4 Pins & Skewers`.
+Commit: `release: v8.2 — World 4 Pins & Skewers`.
 
 ---
 
-# Part C — v8.2: World 5 Survive the Opening + World 6 Simple Endgames
+# Part C — v8.3: World 5 Survive the Opening + World 6 Simple Endgames
 
 ### Task C1: `book` goal (opening lines)
 
@@ -2649,16 +2650,16 @@ Positions must differ from the warm-ups (the duplicate-position test enforces th
 
 - [ ] Steps: add the world entry (FAIL) → author 32 with `--suggest-line … tb|mate|engine` → wire up → `npm test && npm run validate` (`OK 204 puzzles`) → commit `content: World 6 Simple Endgames (32 tablebase/mate-checked puzzles)`.
 
-### Task C4: Release v8.2
+### Task C4: Release v8.3
 
 Same as A11, with these changes:
-- version `chess-coach-v8.2`
+- version `chess-coach-v8.3`
 - smoke7: no "Coming soon" worlds remain, so the count is 0
 - `smoke8.mjs`: seed Worlds 1–4 passed, then play `w5-l1` (checks that **castling** O-O redraws the rook on f1 when it's a key or reply) and `w5-l4`, then `w6-l1` (a 2-move tablebase line with a reply), `w6-l3`, and the World 6 boss
-- screenshots `/workspace/chess-v8.2-shots/`: `01-map-all-worlds`, `02-italian-castle`, `03-fried-liver-na5`, `04-opposition-line`, `05-basic-mate`, `06-w6-boss`
-- live check `js/data/puzzles-w5.js` and `js/data/puzzles-w6.js` return 200 and `sw.js` contains `chess-coach-v8.2`
+- screenshots `/workspace/chess-v8.3-shots/`: `01-map-all-worlds`, `02-italian-castle`, `03-fried-liver-na5`, `04-opposition-line`, `05-basic-mate`, `06-w6-boss`
+- live check `js/data/puzzles-w5.js` and `js/data/puzzles-w6.js` return 200 and `sw.js` contains `chess-coach-v8.3`
 
-Commit: `release: v8.2 — World 5 openings, World 6 endgames`.
+Commit: `release: v8.3 — World 5 openings, World 6 endgames`.
 
 ---
 
@@ -2672,7 +2673,7 @@ Commit: `release: v8.2 — World 5 openings, World 6 endgames`.
 - Endgames mixed into reviews from World 3: A10.
 - Validator handles multi-move solutions (A2, A5), mate in 2 with replies (A5), Black-to-move with a flipped board (A3, A4, A5 prompt check), endgame "play it out" kept short and verifiable (A7: ≤ 3 moves, only-move nodes), and book lines (C1).
 - Keep v7 UI, storage key and update flow: Global Constraints and A11.
-- Versions v8, v8.1, v8.2: A11, B3, C4.
+- Versions v8, v8.2, v8.3: A11, B3, C4.
 - The Chess.com blunder import is **Phase 3** and is out of scope here.
 
 **Placeholder scan:** the code steps contain the full code. The content tasks deliberately specify *how* each puzzle is generated and checked (brief, seed entries, exact commands, quotas, prompts) rather than listing 200 FENs inside a plan. The validator is the gate, and the trees are machine-generated.

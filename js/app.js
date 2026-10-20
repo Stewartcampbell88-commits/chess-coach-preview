@@ -15,14 +15,17 @@ import { checkAnswer } from "./logic/answer.js";
 import { makeRng, seedFrom } from "./logic/rng.js";
 import { localDateKey } from "./logic/dates.js";
 import { displayStreak } from "./logic/streak.js";
+import { lockedReason } from "./logic/map-layout.js";
+import { promotionFor } from "./logic/league.js";
 import { loadProgress, saveProgress } from "./storage.js";
-import { initUpdates } from "./ui/update.js";
+import { initUpdates, toast } from "./ui/update.js";
 import { createBoard, reducedMotion } from "./ui/board.js";
 import { unlockAudio, playSound, setSoundMuted } from "./ui/sound.js";
 import {
   renderMap, renderDaily, renderReview, renderProfile, renderTabBar,
   renderPuzzleShell, renderTopBar, renderCoach, renderActionBar,
   renderLevelResult, renderBossResult, renderSessionEnd,
+  renderNodeSheet, renderRank, renderPromotion,
 } from "./ui/screens.js";
 
 const BY_ID = puzzlesById();
@@ -30,7 +33,8 @@ const root = document.getElementById("app");
 let progress = loadProgress();
 setSoundMuted(progress.settings.muted);
 
-const ui = { screen: "tabs", tab: "home" }; // screen: tabs | puzzle | result
+const ui = { screen: "tabs", tab: "home", view: null }; // screen: tabs | puzzle | result; view: null | "rank" (Home only)
+let tokenAt = null; // node the pawn token stood on last time the map was drawn (for the hop)
 const play = {
   mode: null, levelId: null, worldId: 1, ids: [], index: 0, lives: null, results: [],
   phase: "solving", picked: [], hinted: false, hintsUsed: 0, result: null,
@@ -72,18 +76,71 @@ function renderTabs() {
   if (ui.tab === "daily") content = renderDaily(progress, opts);
   else if (ui.tab === "review") content = renderReview(progress, WORLDS, PUZZLES, opts);
   else if (ui.tab === "profile") content = renderProfile(progress, WORLDS, opts);
+  else if (ui.view === "rank") content = renderRank(progress, WORLDS, opts);
   else content = renderMap(progress, WORLDS, opts);
-  root.innerHTML = `<main class="tab-page" data-tab="${ui.tab}">${content}</main>${renderTabBar(ui.tab)}`;
+  const view = ui.tab === "home" ? (ui.view === "rank" ? "rank" : "map") : ui.tab;
+  root.innerHTML = `<main class="tab-page" data-tab="${ui.tab}" data-view="${view}">${content}</main>${renderTabBar(ui.tab)}`;
   board = null;
 }
 
-function goTab(tab = ui.tab) {
+/** Scroll the map so `el` sits in the middle of the screen. */
+function centreOn(el, smooth = false) {
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  window.scrollTo({ top: Math.max(0, window.scrollY + r.top + r.height / 2 - window.innerHeight / 2), behavior: smooth ? "smooth" : "auto" });
+}
+
+/** After drawing the map: centre on the pawn and, if it moved since last time, hop it there. */
+function settleMap() {
+  const tok = root.querySelector(".token");
+  const map = root.querySelector(".map");
+  if (!map) return;
+  if (!tok) { tokenAt = null; centreOn([...root.querySelectorAll(".castle.beaten")].pop() || map); return; }
+  const to = tok.dataset.at;
+  const from = tokenAt && tokenAt !== to ? root.querySelector(`[data-node="${tokenAt}"]`) : null;
+  tokenAt = to;
+  if (!from || reducedMotion()) { centreOn(tok); return; }
+  const end = { left: tok.style.left, top: tok.style.top };
+  tok.style.left = from.style.left;
+  tok.style.top = from.style.top;
+  centreOn(from);
+  void tok.offsetWidth; // commit the start position before transitioning
+  setTimeout(() => {
+    tok.classList.add("hopping");
+    tok.style.left = end.left;
+    tok.style.top = end.top;
+    centreOn(root.querySelector(`[data-node="${to}"]`), true);
+    playSound("select");
+    setTimeout(() => tok.classList.remove("hopping"), 800);
+  }, 250);
+}
+
+function goTab(tab = ui.tab, view = null) {
   ui.screen = "tabs";
   ui.tab = tab;
+  ui.view = tab === "home" ? view : null;
   play.mode = null;
   renderTabs();
-  window.scrollTo(0, 0);
+  if (ui.tab === "home" && !ui.view) settleMap();
+  else window.scrollTo(0, 0);
 }
+
+function closeSheet() {
+  root.querySelector("#sheet-host")?.remove();
+}
+
+function openNode(id) {
+  closeSheet();
+  const reason = lockedReason(progress, WORLDS, id);
+  const world = WORLDS.find((w) => w.boss?.id === id || w.levels.some((l) => l.id === id));
+  const locked = !world
+    || (world.boss?.id === id ? bossStatus(progress, WORLDS, world.id) === "locked" : levelStatus(progress, WORLDS, id) === "locked");
+  if (locked) return toast(reason);
+  playSound("select");
+  root.insertAdjacentHTML("beforeend", `<div id="sheet-host">${renderNodeSheet(progress, WORLDS, id)}</div>`);
+  return undefined;
+}
+
 
 // ——— Puzzle flow ———
 function begin(mode, ids, extra = {}) {
@@ -289,9 +346,14 @@ function finishLevel() {
 function finishBoss() {
   const world = WORLDS.find((w) => w.id === play.worldId);
   const grade = gradeBoss(play.results, BY_ID, world);
+  const firstWin = grade.passed && !progress.bosses[world.boss.id]?.passed;
   progress = recordBossResult(progress, world.boss.id, play.ids, grade);
   persist();
-  showResult(renderBossResult(grade, WORLDS, play.worldId), grade.passed ? "clear" : "wrong");
+  if (firstWin) {
+    const { from, to } = promotionFor(world.id);
+    return showResult(renderPromotion({ worldId: world.id, score: grade.score, from, to }), "promote");
+  }
+  return showResult(renderBossResult(grade, WORLDS, play.worldId), grade.passed ? "clear" : "wrong");
 }
 
 function finishSession() {
@@ -330,7 +392,7 @@ function toggleSound() {
   persist();
   setSoundMuted(progress.settings.muted);
   if (!progress.settings.muted) playSound("select");
-  if (ui.screen === "tabs") renderTabs();
+  if (ui.screen === "tabs") { const y = window.scrollY; renderTabs(); window.scrollTo(0, y); }
 }
 
 function onAction(action, el) {
@@ -349,6 +411,10 @@ function onAction(action, el) {
     case "retry": return retry();
     case "next": return ui.screen === "puzzle" && (play.phase === "correct" || play.phase === "wrong" || play.phase === "retrying") ? next() : undefined;
     case "home": return goTab("home");
+    case "open-node": return openNode(el.getAttribute("data-node"));
+    case "close-sheet": return closeSheet();
+    case "open-rank": closeSheet(); return goTab("home", "rank");
+    case "close-rank": return goTab("home");
     case "toggle-sound": return toggleSound();
     case "check-update": return updates.check();
     case "apply-update": return updates.apply();
@@ -363,5 +429,8 @@ root.addEventListener("click", (e) => {
   if (actionEl && root.contains(actionEl) && !actionEl.disabled) onAction(actionEl.getAttribute("data-action"), actionEl);
 });
 
-const updates = initUpdates(() => { if (ui.screen === "tabs") renderTabs(); });
-renderTabs();
+const updates = initUpdates(() => { if (ui.screen === "tabs") { const y = window.scrollY; renderTabs(); window.scrollTo(0, y); } });
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+goTab("home");
+// Fonts/CSS can shift the layout after first paint, so centre once more when it settles.
+window.addEventListener("load", () => { if (ui.screen === "tabs" && ui.tab === "home" && !ui.view) centreOn(root.querySelector(".token") || root.querySelector(".map")); });

@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, existsSync } from "node:fs"; import { APP_VE
 const sw = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 const walk = (d) => readdirSync(new URL(`../${d}/`, import.meta.url), { withFileTypes: true })
   .flatMap(e => e.isDirectory() ? walk(`${d}/${e.name}`) : [`./${d}/${e.name}`]);
-test("cache name matches app version", () => { assert.equal(APP_VERSION, "chess-coach-v8"); assert.ok(sw.includes(`"${APP_VERSION}"`)); });
+test("cache name matches app version", () => { assert.equal(APP_VERSION, "chess-coach-v8.1"); assert.ok(sw.includes(`"${APP_VERSION}"`)); });
 test("every module and stylesheet is in the shell", () => {
   for (const f of [...walk("js"), ...walk("css"), ...walk("assets/pieces").filter(f => f.endsWith(".svg")), ...walk("icons").filter(f => f.endsWith(".png")), "./index.html", "./manifest.json", "./favicon.svg"]) assert.ok(sw.includes(`"${f}"`), f); });
 test("index.html loads app as a module", () => {

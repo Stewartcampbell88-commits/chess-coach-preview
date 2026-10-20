@@ -1,10 +1,10 @@
 // Pure screen renderers: state -> HTML string. No DOM access here.
 // Copy is trusted constant data (AU English) and is not HTML-escaped.
-import { levelStatus, bossStatus, worldStatus } from "../logic/progress.js";
 import { displayStreak } from "../logic/streak.js";
 import { dueIds } from "../logic/review.js";
 import { BOSS_SIZE } from "../logic/boss.js";
 import { ICONS, COACH_AVATAR } from "./icons.js";
+export { renderMap, renderNodeSheet, renderRank, renderPromotion, rankChip, shieldSvg } from "./journey.js";
 
 const findLevel = (worlds, levelId) => {
   for (const w of worlds) {
@@ -50,93 +50,6 @@ function pageHeader(title, { muted, sub } = {}) {
     </header>`;
 }
 
-function streakChip(n) {
-  return `<span class="streak-chip ${n ? "" : "cold"}"><b>🔥 ${n} day streak</b></span>`;
-}
-
-// ——— Home / map ———
-function levelNode(progress, worlds, level, index) {
-  const status = levelStatus(progress, worlds, level.id);
-  const best = progress.levels[level.id]?.stars || 0;
-  const cls = status === "locked" ? "locked" : status === "cleared" ? "done" : "current";
-  const circle = status === "locked" ? ICONS.lock : status === "cleared" ? ICONS.check : `<b>${index + 1}</b>`;
-  const action = status === "locked"
-    ? `<span class="lock-badge">${ICONS.lock} Locked</span>`
-    : status === "cleared"
-      ? `<button class="btn grey sm" data-action="play-level" data-level="${level.id}">Replay</button>`
-      : `<button class="btn green sm" data-action="play-level" data-level="${level.id}">${ICONS.play} Play</button>`;
-  return `
-    <div class="node ${cls}">
-      <div class="node-dot">${circle}</div>
-      <div class="node-card">
-        <div class="node-top"><p class="node-title">Level ${index + 1} · ${level.name}</p>${status === "cleared" ? starsHtml(best) : ""}</div>
-        <p class="node-blurb">5 puzzles · 3 lives</p>
-        <div class="node-actions">${action}</div>
-      </div>
-    </div>`;
-}
-
-function bossNode(progress, worlds, world) {
-  const status = bossStatus(progress, worlds, world.id);
-  const cls = status === "locked" ? "locked" : status === "passed" ? "done" : "current";
-  let action;
-  if (status === "locked") action = `<span class="lock-badge">${ICONS.lock} Clear every level to unlock</span>`;
-  else if (status === "gated") {
-    const gate = findLevel(worlds, progress.bossGate[world.boss.id]);
-    action = `<p class="gate-note">Practise ${gate ? gate.level.name : "your weak level"} first, then have another go.</p>`;
-  } else if (status === "passed") action = `<button class="btn grey sm" data-action="play-boss" data-world="${world.id}">Replay boss</button>`;
-  else action = `<button class="btn gold sm" data-action="play-boss" data-world="${world.id}">${ICONS.crown} Fight the boss</button>`;
-  return `
-    <div class="node boss ${cls}">
-      <div class="node-dot">${ICONS.crown}</div>
-      <div class="node-card">
-        <p class="node-title">${world.boss.name}</p>
-        <p class="node-blurb">Pass 4 of 5 to clear the world</p>
-        <div class="node-actions">${action}</div>
-      </div>
-    </div>`;
-}
-
-function worldSection(progress, worlds, world) {
-  const status = worldStatus(progress, worlds, world.id);
-  if (status === "coming-soon" || status === "locked") {
-    return `
-      <section class="world soon">
-        <div class="world-head">
-          <div class="world-badge">${ICONS.lock}</div>
-          <div class="world-text"><p class="world-name">World ${world.id} · ${world.name}</p><p class="world-blurb">${world.blurb}</p></div>
-          <span class="soon-tag">${status === "coming-soon" ? "Coming soon" : "Locked"}</span>
-        </div>
-      </section>`;
-  }
-  const cleared = world.levels.filter((l) => progress.levels[l.id]?.cleared).length;
-  const total = world.levels.length + (world.boss ? 1 : 0);
-  const done = cleared + (status === "passed" ? 1 : 0);
-  return `
-    <section class="world ${status}">
-      <div class="world-head">
-        <div class="world-badge">${world.id}</div>
-        <div class="world-text"><p class="world-name">World ${world.id} · ${world.name}</p><p class="world-blurb">${world.blurb}</p></div>
-        <span class="world-count">${done}/${total}</span>
-      </div>
-      <div class="path">
-        ${world.levels.map((l, i) => levelNode(progress, worlds, l, i)).join("")}
-        ${world.boss ? bossNode(progress, worlds, world) : ""}
-      </div>
-    </section>`;
-}
-
-function dailyCard(progress, today) {
-  const doneToday = progress.streak.lastDate === today;
-  return `
-    <div class="daily-card">
-      <div class="daily-top">
-        ${streakChip(displayStreak(progress.streak, today))}
-        ${doneToday ? `<span class="done-today">${ICONS.check} Done today</span>` : '<span class="muted small">5–10 min</span>'}
-      </div>
-      <button class="btn green big" data-action="play-session">Play today's session</button>
-    </div>`;
-}
 
 function updateCard(appVersion, updateChecking, updateReady) {
   return `
@@ -147,16 +60,6 @@ function updateCard(appVersion, updateChecking, updateReady) {
       <button class="btn grey" data-action="check-update"${updateChecking ? " disabled" : ""}>${updateChecking ? "Checking…" : "Check for update"}</button>
       ${updateReady ? '<button class="btn green" data-action="apply-update">Update now</button>' : ""}
     </div>`;
-}
-
-export function renderMap(progress, worlds, { today, updateReady, updateChecking, appVersion, muted = false }) {
-  return `
-    ${pageHeader("Chess - Teacher", { muted, sub: "Climb toward 1500 Rapid" })}
-    ${updateBanner(updateReady)}
-    ${dailyCard(progress, today)}
-    ${worlds.map((w) => worldSection(progress, worlds, w)).join("")}
-    ${updateCard(appVersion, updateChecking, updateReady)}
-    <p class="foot-note">Chess - Teacher · preview</p>`;
 }
 
 // ——— Daily tab ———

@@ -1,4 +1,4 @@
-const CACHE = "chess-coach-v8";
+const CACHE = "chess-coach-v8.1";
 const SHELL = [
   "./",
   "./index.html",
@@ -35,6 +35,8 @@ const SHELL = [
   "./js/logic/boss.js",
   "./js/logic/dates.js",
   "./js/logic/line.js",
+  "./js/logic/league.js",
+  "./js/logic/map-layout.js",
   "./js/logic/progress.js",
   "./js/logic/review.js",
   "./js/logic/rng.js",
@@ -45,6 +47,7 @@ const SHELL = [
   "./js/ui/board-markup.js",
   "./js/ui/board.js",
   "./js/ui/icons.js",
+  "./js/ui/journey.js",
   "./js/ui/screens.js",
   "./js/ui/sound.js",
   "./js/ui/update.js",

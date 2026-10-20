@@ -53,6 +53,10 @@ const SOUNDS = {
   capture: () => { knock(0, 0.05, { freq: 1300, gain: 1 }); knock(0.045, 0.08, { freq: 650, gain: 0.9 }); },
   correct: () => { tone(784, 0.02, 0.14, { type: "triangle" }); tone(1175, 0.12, 0.22, { type: "triangle" }); },
   wrong: () => { tone(330, 0, 0.18, { type: "sawtooth", gain: 0.07, slideTo: 196 }); tone(165, 0.02, 0.22, { gain: 0.12 }); },
+  promote: () => {
+    [392, 523, 659, 784].forEach((f, i) => tone(f, i * 0.11, 0.3, { type: "triangle", gain: 0.15 }));
+    [1047, 1319, 1568].forEach((f) => tone(f, 0.5, 0.7, { type: "triangle", gain: 0.11 }));
+  },
   clear: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.26, { type: "triangle", gain: 0.16 })); },
   select: () => { knock(0, 0.03, { freq: 2200, gain: 0.25 }); },
 };
