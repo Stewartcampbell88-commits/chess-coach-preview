@@ -1,0 +1,9 @@
+{
+  "name": "chess-teacher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "validate": "npm --prefix tools install --silent && node --test tools/tests/ && node tools/validate-puzzles.mjs"
+  }
+}
