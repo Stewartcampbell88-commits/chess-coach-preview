@@ -55,8 +55,14 @@ The validator works out the correct answer for every puzzle itself (legal positi
 
 ## Updates (service worker)
 
-`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v7` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
+`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v7.1` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG and each PNG in `icons/`, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
 
 ## Local
 
 Serve the folder (ES modules don't load from `file://`), e.g. `python3 -m http.server 8765`, then open http://localhost:8765/.
+
+## Installing on Android / iPhone
+
+The manifest uses PNG icons (192 and 512, normal plus maskable) and a 180 px apple-touch-icon, which Android needs to build a real installed app. It has its own `id` of `/chess-coach-preview/`.
+
+Other apps on `stewartcampbell88-commits.github.io` share the same origin, and ANVIL uses `id: "/"`. An `id` of `"./"` resolves to that same origin root, so Chrome treated this app as ANVIL ("already installed"). Keep the `id` unique.

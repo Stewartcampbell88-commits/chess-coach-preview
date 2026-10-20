@@ -1,19 +1,19 @@
 {
   "name": "Chess - Teacher",
-  "short_name": "Chess - Teacher",
+  "short_name": "Chess Teacher",
   "description": "5–10 minute daily chess training toward 1500 Rapid",
-  "id": "./",
+  "id": "/chess-coach-preview/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#312e2b",
-  "theme_color": "#262421",
+  "theme_color": "#312e2b",
+  "prefer_related_applications": false,
   "icons": [
-    {
-      "src": "./favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -1,9 +1,14 @@
-const CACHE = "chess-coach-v7";
+const CACHE = "chess-coach-v7.1";
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./favicon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-maskable-192.png",
+  "./icons/icon-maskable-512.png",
+  "./icons/apple-touch-icon-180.png",
   "./assets/pieces/cburnett/bB.svg",
   "./assets/pieces/cburnett/bK.svg",
   "./assets/pieces/cburnett/bN.svg",
