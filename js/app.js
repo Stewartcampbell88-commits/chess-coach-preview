@@ -38,6 +38,7 @@ const play = {
 };
 let board = null;
 let busy = false; // true while a move animation / feedback sequence runs
+let boardGen = 0; // bumps on every board reset, so a late opponent reply never lands on a fresh board
 
 const today = () => localDateKey(new Date());
 const persist = () => saveProgress(progress);
@@ -111,6 +112,7 @@ function showPuzzle() {
 
 function resetBoard(extra = {}) {
   const pz = currentPuzzle();
+  boardGen += 1;
   play.fen = pz.fen;
   play.line = pz.kind === "line" ? lineStart(pz) : null;
   const side = turnOf(pz.fen);
@@ -169,12 +171,14 @@ async function onMove(uci, { dragged }) {
   play.line = step.state;
   play.fen = played.fen;
   if (step.result === "solved") return resolve(true, lan);
+  const gen = boardGen;
   await wait(reducedMotion() ? 0 : 350);
-  if (ui.screen !== "puzzle" || currentPuzzle() !== pz) return; // left the puzzle meanwhile
+  if (ui.screen !== "puzzle" || gen !== boardGen) return; // left or restarted the puzzle meanwhile
   const reply = playUci(play.fen, step.reply);
   const ranim = board.move(step.reply, { animate: true });
   playSound(reply.captured ? "capture" : "move");
   await ranim;
+  if (gen !== boardGen) return;
   play.fen = reply.fen;
   board.set({ fen: reply.fen, board: parseFen(reply.fen).board, mode: "move", hint: [] });
   refreshChrome({ text: `${sideName(turnOf(reply.fen) === "w" ? "b" : "w")} plays ${reply.san}. Your move — keep going.`, mood: "good" });

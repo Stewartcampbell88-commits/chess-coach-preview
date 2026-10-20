@@ -9,6 +9,9 @@ None of the app's art or sound comes from Chess.com. It uses no Chess.com logos,
 | Chess piece images ("cburnett" set) | `assets/pieces/cburnett/*.svg` | [Colin M.L. Burnett](https://en.wikipedia.org/wiki/User:Cburnett); files taken unmodified from the [Lichess](https://github.com/lichess-org/lila/tree/master/public/piece/cburnett) repository | GPLv2 or later ([full text](assets/pieces/cburnett/COPYING-GPL-2.0.txt)). Licence as listed in Lichess's `COPYING.md`. |
 | chess.js 1.4.0 (move rules for legal-move dots and drag validation) | `js/vendor/chess.js` (ESM build, unmodified except the source-map comment was removed) | Jeff Hlywa and contributors, https://github.com/jhlywa/chess.js | BSD-2-Clause ([licence](assets/licenses/chess.js-LICENSE.txt)) |
 | chess.js 1.4.0 (dev-only puzzle validator) | `tools/` (installed by npm, not served to the app) | as above | BSD-2-Clause |
+| Stockfish 19 (npm `stockfish` 19.0.1, lite single-threaded WASM build) — dev-only, checks World 3 puzzles | `tools/` (installed by npm, never served to the app or bundled) | The Stockfish developers, https://stockfishchess.org; JS/WASM port by Nathan Rugg | GPL-3.0 |
+| Lichess tablebase API (dev-only, checks endgame warm-ups) | queried by `tools/tablebase.mjs`; answers cached in `tools/cache/tablebase.json` | lichess.org, https://tablebase.lichess.ovh (Syzygy tables) | free public API |
+| Puzzle positions (many World 2–3 puzzles; each has a `source: "lichess:<id>"` field) | `js/data/puzzles-w2.js`, `js/data/puzzles-w3.js` | Lichess open puzzle database, https://database.lichess.org | CC0 (public domain). Explanations and answer trees were rewritten/re-checked for this app. |
 
 ## Made for this app (no third-party licence)
 

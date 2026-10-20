@@ -1,4 +1,4 @@
-const CACHE = "chess-coach-v7.1";
+const CACHE = "chess-coach-v8";
 const SHELL = [
   "./",
   "./index.html",

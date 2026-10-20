@@ -1,19 +1,23 @@
-# Chess - Teacher — phone preview (v7)
+# Chess - Teacher — phone preview (v8)
 
 A 5–10 minute daily chess game for Stewart Campbell (`stewartcamp`) aimed at climbing Chess.com Rapid toward **1500**. It teaches the way a grandmaster would relearn: lots of short, real-position puzzles, tactics before openings, and a boss at the end of each world that checks you've actually learned it.
 
 **Live:** https://stewartcampbell88-commits.github.io/chess-coach-preview/
 
 - Spec: `docs/superpowers/specs/2026-10-20-chess-teacher-design.md`
-- Plan: `docs/superpowers/plans/2026-10-20-chess-teacher-v6.md`
+- Plans: `docs/superpowers/plans/2026-10-20-chess-teacher-v6.md`, `docs/superpowers/plans/2026-10-20-chess-teacher-phase2.md` (v8 = Part A)
 
-## What's in it (Phase 1 content, v7 look)
+## What's in it (v8: Worlds 1–3, v7 look)
 
-- **Map:** 6 worlds in GM order. World 1 **Don't Hang Pieces** is playable. Worlds 2–6 show as *Coming soon*.
+- **Map:** 6 worlds in GM order. Worlds 1–3 are playable; Worlds 4–6 show as *Coming soon*. Each world opens only once the previous world's boss is passed (no skip-ahead).
+- **World 2 Mate in 1 & 2:** Mate in 1 with Queen & Rook → Back-Rank Mate → Mate in 1 with Knight, Bishop & Pawn → Mate in 2. In a mate-in-2 you play your move, the coach plays the opponent's reply on the board, then you finish.
+- **World 3 Forks & Double Attacks:** Knight Forks → Queen Forks → Pawn Forks → Double Attacks (incl. discovered attacks). Fork, they reply, you collect.
+- **Black to move:** about a third of World 2–3 puzzles are Black to move, and the board flips so Black is at the bottom.
+- **Endgame warm-ups:** once World 3 is open, each daily session swaps one slot for a short endgame (opposition, square of the pawn, basic K+Q / K+R mates). Missed ones come back through spaced review; the Review tab shows an *Endgame warm-ups* row.
 - **World 1 levels** (5 puzzles each, 3 lives; stars = lives left): Spot the Hanging Piece → Free Lunch → Count Attackers & Defenders → Save Your Piece. 0 lives = soft retry, no progress lost.
 - **Boss:** 5 fresh positions (never used in levels), pass with **4 of 5**. Fail → the app names your weakest level; the boss stays locked until you clear that level again. A retry uses different positions.
 - **Daily session:** one tap, 10 puzzles: 4 weak spots / 4 current level / 2 spaced review (missed puzzles return after 1, 3, 7, 16, 35 days). The streak goes up once per day when a session is finished.
-- Phase 1 puzzles are all White to move, board from White's side.
+- World 1 puzzles are all White to move.
 
 ## Look and feel (v7)
 
@@ -37,10 +41,11 @@ js/ui/                board (drag/tap controller), board-markup (pure), screens 
 js/chess/rules.js     legal moves + hints (uses js/vendor/chess.js, BSD-2)
 assets/pieces/        cburnett SVG pieces (GPLv2+) + licence text
 js/logic/             pure rules: stars, progress/unlocks, boss, session, review, streak, dates, rng, answer
-js/data/              worlds + World 1 puzzles
+js/data/              worlds + puzzles-w1/w2/w3/drip, joined in puzzles.js
+js/logic/line.js      multi-move (line) puzzle tree follower
 js/chess/board.js     FEN parsing
 js/storage.js         localStorage (key chess-teacher-v6), never throws
-tools/                dev-only puzzle validator (chess.js) — not used by the app
+tools/                dev-only puzzle validator (chess.js, Stockfish, Lichess tablebase) — not used by the app
 tests/                node --test unit tests
 ```
 
@@ -51,11 +56,18 @@ npm test            # unit tests (Node 20+, no install needed)
 npm run validate    # installs chess.js into tools/ and checks every puzzle
 ```
 
-The validator works out the correct answer for every puzzle itself (legal position, static-exchange "is it really hanging?", no mate-in-1 allowed, and so on) and fails if a puzzle's answer key differs.
+The validator works out the correct answer for every puzzle itself and fails if a puzzle's answer key differs:
+
+- World 1: legal position, static-exchange "is it really hanging?", no mate-in-1 allowed, and so on.
+- Mates (World 2, warm-ups): exact search. Every accepted move must force mate in N, no shorter mate may exist, and the opponent's reply is the longest defence.
+- Forks / double attacks (World 3): Stockfish 19 (npm, depth 16, MultiPV 8) — the key must be clearly best (next move ≥ 2 pawns worse), win ≥ 2 points of material, and actually fork / double-attack (theme detector). Results are cached in `tools/cache/engine.json`.
+- Endgame warm-ups: Lichess tablebase API, cached in `tools/cache/tablebase.json` (validation works offline once cached).
+
+Helpers: `node tools/validate-puzzles.mjs --suggest-line "<fen>" mate|engine|tb <n> [win|draw]` prints the tree to paste. `tools/pick-lichess.mjs` filters the Lichess open puzzle database (CC0) for candidate positions (download notes in the file; `tools/data/` is git-ignored).
 
 ## Updates (service worker)
 
-`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v7.1` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG and each PNG in `icons/`, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
+`APP_VERSION` in `js/version.js` and `CACHE` in `sw.js` are both `chess-coach-v8` and must move together. Progress stays under storage key `chess-teacher-v6`, so v6 progress carries over. Every file under `js/` and `css/`, plus each piece SVG and each PNG in `icons/`, must be listed in `SHELL` in `sw.js` (a test enforces this). The app checks for a new build on open/focus and hourly. **Check for update** on the map, then **Update now** when offered. If it still looks stale, force-close the home-screen app and reopen it.
 
 ## Local
 
