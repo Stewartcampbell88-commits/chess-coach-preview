@@ -1,5 +1,5 @@
 // Pure progress rules. Functions never mutate their input.
-import { starsForLives } from "./stars.js";
+import { starsForResult } from "./stars.js";
 import { scheduleAnswer } from "./review.js";
 import { updateStreak } from "./streak.js";
 
@@ -10,7 +10,8 @@ import { updateStreak } from "./streak.js";
  *   bossGate: Record<string, string>,
  *   tagSeen: Record<string, number>, tagMisses: Record<string, number>,
  *   review: Record<string, {box: number, due: string}>,
- *   streak: {count: number, lastDate: string|null} }} Progress
+ *   streak: {count: number, lastDate: string|null},
+ *   settings: {muted: boolean} }} Progress
  */
 
 export function defaultProgress() {
@@ -23,7 +24,12 @@ export function defaultProgress() {
     tagMisses: {},
     review: {},
     streak: { count: 0, lastDate: null },
+    settings: { muted: false },
   };
+}
+
+export function setMuted(p, muted) {
+  return { ...p, settings: { ...p.settings, muted: Boolean(muted) } };
 }
 
 const findWorld = (worlds, worldId) => worlds.find((w) => w.id === worldId) || null;
@@ -74,8 +80,8 @@ export function currentLevelId(p, worlds) {
   return null;
 }
 
-export function recordLevelResult(p, levelId, livesLeft) {
-  const stars = starsForLives(livesLeft);
+export function recordLevelResult(p, levelId, livesLeft, { hintsUsed = 0 } = {}) {
+  const stars = starsForResult(livesLeft, hintsUsed);
   if (stars === 0) return p;
   const prev = p.levels[levelId] || { stars: 0, cleared: false };
   const bossGate = Object.fromEntries(Object.entries(p.bossGate).filter(([, lv]) => lv !== levelId));
@@ -102,14 +108,17 @@ export function recordBossResult(p, bossId, ids, grade) {
   };
 }
 
-/** Records one answered puzzle: tag stats + spaced review. Never touches the streak. */
-export function recordAnswer(p, puzzle, correct, today) {
+/**
+ * Records one answered puzzle: tag stats + spaced review. Never touches the streak.
+ * A correct answer that needed a hint still goes into review (scheduled like a miss).
+ */
+export function recordAnswer(p, puzzle, correct, today, { hinted = false } = {}) {
   const tag = puzzle.tag;
   return {
     ...p,
     tagSeen: { ...p.tagSeen, [tag]: (p.tagSeen[tag] || 0) + 1 },
     tagMisses: correct ? p.tagMisses : { ...p.tagMisses, [tag]: (p.tagMisses[tag] || 0) + 1 },
-    review: scheduleAnswer(p.review, puzzle.id, correct, today),
+    review: scheduleAnswer(p.review, puzzle.id, correct && !hinted, today),
   };
 }
 

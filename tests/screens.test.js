@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { renderMap, renderBossResult, renderLevelResult, renderPuzzle } from "../js/ui/screens.js";
+import { renderMap, renderBossResult, renderLevelResult, renderPuzzleShell, renderActionBar, renderTabBar, renderReview, renderProfile, renderDaily } from "../js/ui/screens.js";
 import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
 import { defaultProgress, recordLevelResult, recordBossResult } from "../js/logic/progress.js";
 import { parseFen } from "../js/chess/board.js";
@@ -25,7 +25,22 @@ test("level result copy", () => {
   assert.ok(renderLevelResult({ levelName: "Free Lunch", stars: 1, livesLeft: 1, nextLevelName: "Count Attackers & Defenders", bossUnlocked: false }).includes("1 star"));
   assert.ok(renderLevelResult({ levelName: "Free Lunch", stars: 0, livesLeft: 0, nextLevelName: null, bossUnlocked: false }).includes("Out of lives — have another go."));
   assert.ok(renderLevelResult({ levelName: "Save Your Piece", stars: 3, livesLeft: 3, nextLevelName: null, bossUnlocked: true }).includes('data-action="play-boss"')); });
-test("puzzle screen: tap kind has Check button, board interactive, hearts shown", () => {
+test("puzzle shell: top bar, coach bubble, board host, hint", () => {
   const pz = PUZZLES[0];
-  const h = renderPuzzle({ title: "Level 1", puzzle: pz, board: parseFen(pz.fen).board, lives: 2, index: 0, total: 5, selected: null, picked: [] });
-  assert.ok(h.includes('data-action="submit-taps"')); assert.equal(h.match(/data-sq=/g).length, 64); assert.ok(h.includes("2 lives left")); });
+  const h = renderPuzzleShell({ title: "Level 1 · Spot the Hanging Piece", lives: 2, index: 0, total: 5,
+    coach: { text: pz.prompt, mood: "neutral" }, actions: { phase: "solving", kind: pz.kind, picked: 0 } });
+  assert.ok(h.includes('id="board-host"')); assert.ok(h.includes("2 lives left")); assert.ok(h.includes(pz.prompt));
+  assert.ok(h.includes('data-action="home"')); assert.ok(h.includes('data-action="hint"')); assert.ok(h.includes('data-action="submit-taps" disabled'));
+  assert.ok(h.includes("coach-avatar")); });
+test("action bar phases", () => {
+  assert.ok(renderActionBar({ phase: "correct", kind: "take-free" }).includes("Correct!"));
+  const w = renderActionBar({ phase: "wrong", kind: "take-free" }); assert.ok(w.includes("Incorrect") && w.includes('data-action="retry"') && w.includes('data-action="next"'));
+  assert.ok(!renderActionBar({ phase: "solving", kind: "take-free", canHint: false }).includes('data-action="hint"'));
+  assert.ok(renderActionBar({ phase: "solving", kind: "take-free", hintUsed: true }).includes("Hint used")); });
+test("tab bar has 4 tabs and marks the active one", () => { const h = renderTabBar("review");
+  assert.equal(h.match(/data-action="tab"/g).length, 4); assert.match(h, /class="tab on" data-action="tab" data-tab="review"/); });
+test("review, profile and daily tabs render stats", () => {
+  const p = { ...defaultProgress(), tagSeen: { spot: 4 }, tagMisses: { spot: 1 }, review: { "w1-l1-01": { box: 0, due: "2026-10-20" } }, streak: { count: 2, lastDate: "2026-10-20" } };
+  const r = renderReview(p, WORLDS, PUZZLES, opts); assert.ok(r.includes("75%")); assert.match(r, /hero-num">1</);
+  const pr = renderProfile(p, WORLDS, opts); assert.ok(pr.includes("Day streak") && pr.includes("Check for update") && pr.includes('data-action="toggle-sound"'));
+  assert.ok(renderDaily(p, opts).includes("Play today's session")); });

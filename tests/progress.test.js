@@ -21,3 +21,14 @@ test("boss fail gates until weak level re-cleared", () => {
 test("boss pass completes world 1 only", () => {
   const p = P.recordBossResult(clearAll(P.defaultProgress()), "w1-boss", ["a"], { score: 4, passed: true, weakLevelId: null, weakTags: [] });
   assert.equal(P.worldStatus(p, WORLDS, 1), "passed"); assert.equal(P.worldStatus(p, WORLDS, 2), "coming-soon"); });
+import { starsForResult } from "../js/logic/stars.js";
+test("hints cost one star, never below 1 on a clear", () => {
+  assert.equal(starsForResult(3, 0), 3); assert.equal(starsForResult(3, 2), 2); assert.equal(starsForResult(1, 1), 1); assert.equal(starsForResult(0, 0), 0); });
+test("hinted correct answer still comes back for review", () => {
+  const p = P.recordAnswer(P.defaultProgress(), { id: "w1-l1-01", tag: "spot" }, true, "2026-10-20", { hinted: true });
+  assert.deepEqual(p.review["w1-l1-01"], { box: 0, due: "2026-10-21" }); assert.equal(p.tagMisses.spot ?? 0, 0); assert.equal(p.tagSeen.spot, 1); });
+test("mute setting defaults off and toggles", () => {
+  const p = P.defaultProgress(); assert.equal(p.settings.muted, false); assert.equal(P.setMuted(p, true).settings.muted, true); });
+test("level result with a hint saves one fewer star", () => {
+  const p = P.recordLevelResult(P.defaultProgress(), "w1-l1", 3, { hintsUsed: 1 });
+  assert.deepEqual(p.levels["w1-l1"], { stars: 2, cleared: true }); });
