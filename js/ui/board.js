@@ -1,14 +1,14 @@
 // Interactive board (DOM). Drag-and-drop and tap-tap moves via pointer events,
 // legal-move dots, slide animation, shake, square badges. Rendering is delegated
 // to the pure boardMarkup().
-import { FILES, applyUci } from "../chess/board.js";
-import { boardMarkup, pieceTransform } from "./board-markup.js";
+import { applyUci } from "../chess/board.js";
+import { boardMarkup, pieceTransform, squareFromXY } from "./board-markup.js";
 import { legalTargets } from "../chess/rules.js";
 import { nextSelection } from "../logic/answer.js";
 
 const EMPTY = { quiet: [], captures: [] };
-const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-const isWhite = (p) => Boolean(p) && p === p.toUpperCase();
+export const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isOwn = (p, turn) => Boolean(p) && (turn === "w" ? p === p.toUpperCase() : p === p.toLowerCase());
 
 export function createBoard(host, { onMove = () => {}, onMark = () => {}, onSelect = () => {} } = {}) {
   const el = document.createElement("div");
@@ -17,21 +17,21 @@ export function createBoard(host, { onMove = () => {}, onMark = () => {}, onSele
   el.setAttribute("aria-label", "Chess board");
   host.replaceChildren(el);
 
-  let st = { fen: "", board: {}, mode: "view", sel: null, lastMove: [], hint: [], marks: [], rings: [], badges: {} };
+  let st = { fen: "", board: {}, mode: "view", orientation: "w", turn: "w", sel: null, lastMove: [], hint: [], marks: [], rings: [], badges: {} };
   let drag = null;
 
   function paint() {
     const legal = st.mode === "move" && st.sel ? legalTargets(st.fen, st.sel) : EMPTY;
     el.innerHTML = boardMarkup(st.board, { ...st, selected: st.sel, legal });
     el.dataset.mode = st.mode;
+    el.dataset.orientation = st.orientation;
   }
 
   function squareAt(e) {
     const r = el.getBoundingClientRect();
     const x = Math.floor(((e.clientX - r.left) / r.width) * 8);
     const y = Math.floor(((e.clientY - r.top) / r.height) * 8);
-    if (x < 0 || x > 7 || y < 0 || y > 7) return null;
-    return FILES[x] + (8 - y);
+    return squareFromXY(x, y, st.orientation);
   }
 
   function select(sq) {
@@ -46,14 +46,14 @@ export function createBoard(host, { onMove = () => {}, onMark = () => {}, onSele
     if (!sq) return;
     e.preventDefault();
     if (st.mode === "mark") { onMark(sq); return; }
-    if (isWhite(st.board[sq])) {
+    if (isOwn(st.board[sq], st.turn)) {
       const wasSelected = st.sel === sq;
       if (!wasSelected) select(sq);
       drag = { from: sq, x0: e.clientX, y0: e.clientY, moved: false, wasSelected, id: e.pointerId };
       try { el.setPointerCapture(e.pointerId); } catch {}
       return;
     }
-    const r = nextSelection(st.sel, sq, st.board, "w");
+    const r = nextSelection(st.sel, sq, st.board, st.turn);
     st.sel = r.sel;
     if (r.move) onMove(r.move, { dragged: false });
     else paint();
@@ -107,10 +107,10 @@ export function createBoard(host, { onMove = () => {}, onMark = () => {}, onSele
       const img = el.querySelector(`.pc[data-at="${to}"]`);
       if (!img || !animate || reducedMotion()) return Promise.resolve();
       img.style.transition = "none";
-      img.style.transform = pieceTransform(from);
+      img.style.transform = pieceTransform(from, st.orientation);
       img.getBoundingClientRect();
       img.style.transition = "";
-      img.style.transform = pieceTransform(to);
+      img.style.transform = pieceTransform(to, st.orientation);
       return new Promise((res) => setTimeout(res, 210));
     },
     shake() {
