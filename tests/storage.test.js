@@ -1,0 +1,12 @@
+import test from "node:test"; import assert from "node:assert/strict";
+import { loadProgress, saveProgress } from "../js/storage.js"; import { defaultProgress } from "../js/logic/progress.js";
+const mem = (init = {}) => { const d = { ...init }; return { d, getItem: k => d[k] ?? null, setItem: (k, v) => { d[k] = v; } }; };
+test("missing -> default", () => assert.deepEqual(loadProgress(mem()), defaultProgress()));
+test("corrupt -> default", () => assert.deepEqual(loadProgress(mem({ "chess-teacher-v6": "{oops" })), defaultProgress()));
+test("wrong version -> default", () => assert.deepEqual(loadProgress(mem({ "chess-teacher-v6": '{"level":3}' })), defaultProgress()));
+test("partial merges over defaults", () => { const p = loadProgress(mem({ "chess-teacher-v6": '{"version":6,"streak":{"count":2,"lastDate":"2026-10-19"}}' }));
+  assert.equal(p.streak.count, 2); assert.deepEqual(p.levels, {}); });
+test("round trip on v6 key, v5 untouched", () => { const s = mem({ "chess-teacher-v5": "old" });
+  assert.equal(saveProgress(defaultProgress(), s), true); assert.ok(s.d["chess-teacher-v6"]); assert.equal(s.d["chess-teacher-v5"], "old"); });
+test("quota error -> false, no throw", () => assert.equal(saveProgress(defaultProgress(), { setItem() { throw new Error("full"); } }), false));
+test("no storage at all -> default, no throw", () => assert.deepEqual(loadProgress(undefined), defaultProgress()));
