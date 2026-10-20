@@ -31,6 +31,7 @@ const SHELL = [
   "./js/logic/answer.js",
   "./js/logic/boss.js",
   "./js/logic/dates.js",
+  "./js/logic/line.js",
   "./js/logic/progress.js",
   "./js/logic/review.js",
   "./js/logic/rng.js",

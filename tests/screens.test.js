@@ -1,6 +1,6 @@
 import test from "node:test"; import assert from "node:assert/strict";
 import { renderMap, renderBossResult, renderLevelResult, renderPuzzleShell, renderActionBar, renderTabBar, renderReview, renderProfile, renderDaily } from "../js/ui/screens.js";
-import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles-w1.js";
+import { WORLDS } from "../js/data/worlds.js"; import { PUZZLES } from "../js/data/puzzles.js";
 import { defaultProgress, recordLevelResult, recordBossResult } from "../js/logic/progress.js";
 import { parseFen } from "../js/chess/board.js";
 const opts = { today: "2026-10-20", updateReady: false, updateChecking: false, appVersion: "chess-coach-v6" };
