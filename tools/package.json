@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "chess.js": "1.4.0"
+    "chess.js": "1.4.0",
+    "stockfish": "19.0.1"
   }
 }
